@@ -110,9 +110,6 @@ def main():
                     ssm.update()
                 elif ssm.current.name == "lift_up":
                     new_pos = tuple(a + b for a, b in zip(controller.current_pathing_pos, [0, 0, 1]))
-                    print(controller.current_pathing_pos)
-                    print(new_pos)
-                    print("")
                     webSocket_points_data_queue.put(controller.route_to_new_point(new_pos))
                     ssm.go_to(moving_sort)
                     ssm.update()

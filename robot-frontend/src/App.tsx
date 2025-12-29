@@ -1,10 +1,13 @@
-import PointCloud from "./applets/PointCloud";
-import { useWebSocketPoints } from "./useWebSocketPoints";
-
+import { useState } from "react";
 import "./App.css";
+import MonitorApplet from "./applets/MonitorApplet";
+import ControlApplet from "./applets/controlApplet";
+
+type AppletType = "Monitor" | "Control" | "Configure" | "Update";
 
 export default function App() {
-  const data = useWebSocketPoints("ws://localhost:8765");
+
+  const [activeApplet, setActiveApplet] = useState<AppletType>("Monitor");
 
   return (
     <div className="app-container">
@@ -16,29 +19,14 @@ export default function App() {
         <div className="hamburger-menu">
 
           <ul className="menu-items">
-            <li>Monitor</li>
-            <li>Control</li>
-            <li>Configure</li>
-            <li>Update</li>
+            <li onClick={() =>setActiveApplet("Monitor")}>Monitor</li>
+            <li onClick={() =>setActiveApplet("Control")}>Control</li>
+            <li onClick={() =>setActiveApplet("Configure")}>Configure</li>
+            <li onClick={() =>setActiveApplet("Update")}>Update</li>
           </ul>
         </div>
-
-        <div className="container">
-          <div className="left-panel">
-            <div className="point-cloud">
-              <PointCloud points={data.points} currentPoint={data.currentPoint} />
-            </div>
-            <div className="camera-feed">
-              <h2>Live Camera Feed Placeholder</h2>
-            </div>
-          </div>
-
-          <div className="right-panel">
-            <h2>Active State</h2>
-            <h2>Current Sensing</h2>
-            <h2>Error Codes</h2>
-          </div>
-        </div>
+        {activeApplet === "Monitor" && <MonitorApplet />}
+        {activeApplet === "Control" && <ControlApplet />}
       </div>
     </div>
 

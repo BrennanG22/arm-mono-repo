@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import MonitorApplet from "./applets/MonitorApplet";
-import ControlApplet from "./applets/controlApplet";
+import ControlApplet from "./applets/ControlApplet";
 
 type AppletType = "Monitor" | "Control" | "Configure" | "Update";
 

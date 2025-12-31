@@ -2,6 +2,8 @@ import { useState } from "react";
 import "./App.css";
 import MonitorApplet from "./applets/MonitorApplet";
 import ControlApplet from "./applets/ControlApplet";
+import ConfigureApplet from "./applets/ConfigureApplet";
+import UpdateApplet from "./applets/UpdateApplet";
 
 type AppletType = "Monitor" | "Control" | "Configure" | "Update";
 
@@ -27,6 +29,8 @@ export default function App() {
         </div>
         {activeApplet === "Monitor" && <MonitorApplet />}
         {activeApplet === "Control" && <ControlApplet />}
+        {activeApplet === "Configure" && <ConfigureApplet />}
+        {activeApplet === "Update" && <UpdateApplet />}
       </div>
     </div>
 

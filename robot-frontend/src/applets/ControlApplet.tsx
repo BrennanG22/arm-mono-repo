@@ -7,6 +7,8 @@ function ControlApplet() {
   const [y, setY] = useState(0);
   const [z, setZ] = useState(0);
   const [mode, setMode] = useState<"pointTrack" | "servoTrack">("pointTrack");
+  const [override, setOverride] = useState(false);
+
   const data = useWebSocketPoints("ws://localhost:8765");
 
   return (
@@ -19,10 +21,14 @@ function ControlApplet() {
           <option value="pointTrack">Point Track</option>
           <option value="servoTrack">Servo Track</option>
         </select>
-        <label> X, Y, Z Positions: </label>
-        <input type="number" step={0.1} value={x} onChange={(e) => setX(Number(e.target.value))} placeholder="X Position"></input>
-        <input type="number" step={0.1} value={y} onChange={(e) => setY(Number(e.target.value))} placeholder="Y Position"></input>
-        <input type="number" step={0.1} value={z} onChange={(e) => setZ(Number(e.target.value))} placeholder="Z Position"></input>
+        <input type="checkbox" checked={override} onChange={(e) => setOverride(e.target.checked)} /> Enable Override Control
+        {mode === "pointTrack" && <div>
+          <label> X, Y, Z Positions: </label>
+          <input type="number" step={0.1} value={x} onChange={(e) => setX(Number(e.target.value))} placeholder="X Position"></input>
+          <input type="number" step={0.1} value={y} onChange={(e) => setY(Number(e.target.value))} placeholder="Y Position"></input>
+          <input type="number" step={0.1} value={z} onChange={(e) => setZ(Number(e.target.value))} placeholder="Z Position"></input>
+        </div>
+        }
       </div>
 
     </div>

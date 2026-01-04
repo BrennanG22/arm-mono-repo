@@ -5,10 +5,12 @@ import MonitorApplet from './applets/monitorApplet';
 
 
 function App() {
+
+  const [activeApplet, setActiveApplet] = createSignal<"Monitor" | "Control" | "Configure" | "Update">("Monitor");
+
   onMount(() => {
     console.log("Starting telemetry socket...");
     startTelemetrySocket("ws://localhost:8765");
-
   });
 
   return (
@@ -19,13 +21,16 @@ function App() {
         </div>
         <div class={"flex h-11/12"}>
           <div class={"hamburger-item flex flex-col w-50 bg-gray-200 p-4 "}>
-           <h1>Monitor</h1>
-           <h1>Control</h1>
-           <h1>Configure</h1>
-           <h1>Update</h1> 
+           <button onClick={() => setActiveApplet("Monitor")}>Monitor</button>
+           <button onClick={() => setActiveApplet("Control")}>Control</button>
+           <button onClick={() => setActiveApplet("Configure")}>Configure</button>
+           <button onClick={() => setActiveApplet("Update")}>Update</button> 
           </div>
           <div class={"w-full bg-white p-4 flex"}>
-            <MonitorApplet />
+            {activeApplet() === "Monitor" && <MonitorApplet />}
+            {/* {activeApplet() === "Control" && <ControlApplet />} */}
+            {/* {activeApplet() === "Configure" && <ConfigureApplet />} */}
+            {/* {activeApplet() === "Update" && <UpdateApplet />} */}
           </div>
         </div>
       </div>

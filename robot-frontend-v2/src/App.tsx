@@ -9,7 +9,7 @@ import ControlApplet from './applets/controlApplet';
 
 function App() {
 
-  const [activeApplet, setActiveApplet] = createSignal<"Monitor" | "Control" | "Configure" | "Update">("Monitor");
+  const [activeApplet, setActiveApplet] = createSignal<"Monitor" | "Control" | "Configure" | "Update">("Control");
 
 
   const navButton = (name:string) =>

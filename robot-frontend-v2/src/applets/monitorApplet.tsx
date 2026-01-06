@@ -6,7 +6,7 @@ function MonitorApplet() {
 
 
   return (
-    <div className="grid grid-cols-2 grid-rows-2 gap-4 h-full p-4 bg-gray-100 rounded-2xl">
+    <div class="grid grid-cols-2 grid-rows-2 gap-4 h-full p-4 bg-gray-100 rounded-2xl">
       <style>
         {`
       .panel {
@@ -63,61 +63,61 @@ function MonitorApplet() {
     `}
       </style>
 
-      <div className="panel p-3">
+      <div class="panel p-3">
         <ThreeTest />
       </div>
 
-      <div className="panel row-span-2 p-5 flex flex-col gap-6">
+      <div class="panel row-span-2 p-5 flex flex-col gap-6">
         <div>
-          <div className="panel-header">System Status</div>
+          <div class="panel-header">System Status</div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="metric">
-              <div className="metric-label">Status</div>
-              <div className="metric-value">
+          <div class="grid grid-cols-3 gap-4">
+            <div class="metric">
+              <div class="metric-label">Status</div>
+              <div class="metric-value">
                 {/* Placeholder */}
                 Enabled
               </div>
             </div>
 
-            <div className="metric col-span-2">
-              <div className="metric-label">Position</div>
-              <div className="grid grid-cols-3 gap-2 mt-1">
-                <div className="metric-value">
+            <div class="metric col-span-2">
+              <div class="metric-label">Position</div>
+              <div class="grid grid-cols-3 gap-2 mt-1">
+                <div class="metric-value">
                   X: {telemetry.currentPoint ? telemetry.currentPoint[0].toFixed(2) : "N/A"}
                 </div>
-                <div className="metric-value">
+                <div class="metric-value">
                   Y: {telemetry.currentPoint ? telemetry.currentPoint[1].toFixed(2) : "N/A"}
                 </div>
-                <div className="metric-value">
+                <div class="metric-value">
                   Z: {telemetry.currentPoint ? telemetry.currentPoint[2].toFixed(2) : "N/A"}
                 </div>
               </div>
             </div>
 
-            <div className="metric col-span-3">
-              <div className="metric-label">State</div>
-              <div className="metric-value">
+            <div class="metric col-span-3">
+              <div class="metric-label">State</div>
+              <div class="metric-value">
               </div>
             </div>
           </div>
         </div>
 
         <div>
-          <div className="panel-header">Current Sensing</div>
+          <div class="panel-header">Current Sensing</div>
           <TelemetryChart telemetry={telemetry} />
         </div>
 
         <div>
-          <div className="panel-header">Error Codes</div>
-          <div className="metric text-red-400">
+          <div class="panel-header">Error Codes</div>
+          <div class="metric text-red-400">
             None
           </div>
         </div>
       </div>
 
       {/* Camera Feed */}
-      <div className="camera-feed">
+      <div class="camera-feed">
         Live Camera Feed
       </div>
     </div>

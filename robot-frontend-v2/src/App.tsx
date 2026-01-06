@@ -25,45 +25,45 @@ function App() {
 
   return (
     <>
-      <div className="h-screen w-screen flex flex-col bg-gray-100">
-        <header className="w-full h-16 bg-blue-950 flex items-center shadow-md">
-          <h1 className="text-3xl font-semibold text-white px-6">
+      <div class="h-screen w-screen flex flex-col bg-gray-100">
+        <header class="w-full h-16 bg-blue-950 flex items-center shadow-md">
+          <h1 class="text-3xl font-semibold text-white px-6">
             Robotic Arm Configuration
           </h1>
         </header>
 
-        <div className="flex flex-1 overflow-hidden">
-          <nav className="w-56 bg-gray-200 border-r border-gray-300 p-4 space-y-2">
+        <div class="flex flex-1 overflow-hidden">
+          <nav class="w-56 bg-gray-200 border-r border-gray-300 p-4 space-y-2">
             <button
-              className={navButton("Monitor")}
+              class={navButton("Monitor")}
               onClick={() => setActiveApplet("Monitor")}
             >
               Monitor
             </button>
 
             <button
-              className={navButton("Control")}
+              class={navButton("Control")}
               onClick={() => setActiveApplet("Control")}
             >
               Control
             </button>
 
             <button
-              className={navButton("Configure")}
+              class={navButton("Configure")}
               onClick={() => setActiveApplet("Configure")}
             >
               Configure
             </button>
 
             <button
-              className={navButton("Update")}
+              class={navButton("Update")}
               onClick={() => setActiveApplet("Update")}
             >
               Update
             </button>
           </nav>
 
-          <main className="flex-1 bg-white p-6 overflow-auto">
+          <main class="flex-1 bg-white p-6 overflow-auto">
             {activeApplet() === "Monitor" && <MonitorApplet />}
             {activeApplet() === "Control" && <ControlApplet />}
             {/* {activeApplet() === "Configure" && <ConfigureApplet />} */}

@@ -84,5 +84,5 @@ export default function ThreeTest() {
     });
   });
 
-  return <div ref={container} className="w-full h-full" />;
+  return <div ref={container} class="w-full h-full" />;
 }

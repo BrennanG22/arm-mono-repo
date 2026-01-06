@@ -1,7 +1,7 @@
 import { createStore } from "solid-js/store";
 
 export interface Telemetry {
-  points?: [number, number, number][];
+  points: [number, number, number][];
   currentPoint?: [number, number, number];
   velocity?: number;
   temperature?: number;

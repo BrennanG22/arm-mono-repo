@@ -2,6 +2,7 @@ import { createSignal, onMount, onCleanup } from 'solid-js'
 import './App.css'
 import { startTelemetrySocket } from './stores/telemetry/telemetrySocket'
 import MonitorApplet from './applets/monitorApplet';
+import ControlApplet from './applets/controlApplet';
 
 
 
@@ -64,7 +65,7 @@ function App() {
 
           <main className="flex-1 bg-white p-6 overflow-auto">
             {activeApplet() === "Monitor" && <MonitorApplet />}
-            {/* {activeApplet() === "Control" && <ControlApplet />} */}
+            {activeApplet() === "Control" && <ControlApplet />}
             {/* {activeApplet() === "Configure" && <ConfigureApplet />} */}
             {/* {activeApplet() === "Update" && <UpdateApplet />} */}
           </main>

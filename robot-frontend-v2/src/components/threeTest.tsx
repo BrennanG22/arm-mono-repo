@@ -29,6 +29,7 @@ export default function ThreeTest() {
     // Grid helper
     const grid = new THREE.GridHelper(10, 10);
     scene.add(grid);
+    scene.add(new THREE.AxesHelper(5));
 
     // Points geometry
     const pointsGeometry = new THREE.BufferGeometry();
@@ -43,7 +44,7 @@ export default function ThreeTest() {
 
     // Animation loop
     const animate = () => {
-      const pts = telemetry.points ?? []; 
+      const pts = telemetry.points ?? [];
       if (pts.length > 0) {
         const positions = new Float32Array(pts.length * 3);
         pts.forEach(([x, y, z], i) => {
@@ -83,5 +84,5 @@ export default function ThreeTest() {
     });
   });
 
-  return <div ref={container} style={{ width: "100%", height: "100vh" }} />;
+  return <div ref={container} className="w-full h-full" />;
 }

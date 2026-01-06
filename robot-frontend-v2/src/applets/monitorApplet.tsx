@@ -1,5 +1,5 @@
-import PointCloud from "../components/pointCloud";
 import TelemetryChart from "../components/telemetryChart";
+import ThreeTest from "../components/threeTest";
 import { telemetry } from "../stores/telemetryStore";
 
 function MonitorApplet() {
@@ -64,10 +64,7 @@ function MonitorApplet() {
       </style>
 
       <div className="panel p-3">
-        <PointCloud
-          points={telemetry.points}
-          currentPoint={telemetry.currentPoint}
-        />
+        <ThreeTest />
       </div>
 
       <div className="panel row-span-2 p-5 flex flex-col gap-6">
@@ -76,7 +73,7 @@ function MonitorApplet() {
 
           <div className="grid grid-cols-3 gap-4">
             <div className="metric">
-              <div className="metric-label">Active State</div>
+              <div className="metric-label">Status</div>
               <div className="metric-value">
                 {/* Placeholder */}
                 Enabled
@@ -98,10 +95,9 @@ function MonitorApplet() {
               </div>
             </div>
 
-            <div className="metric">
-              <div className="metric-label">Temperature</div>
+            <div className="metric col-span-3">
+              <div className="metric-label">State</div>
               <div className="metric-value">
-                {telemetry.temperature ?? "N/A"} °C
               </div>
             </div>
           </div>

@@ -98,6 +98,7 @@ function MonitorApplet() {
             <div class="metric col-span-3">
               <div class="metric-label">State</div>
               <div class="metric-value">
+                {telemetry.activeState || "Unknown"}
               </div>
             </div>
           </div>

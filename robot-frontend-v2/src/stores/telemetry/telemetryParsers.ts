@@ -1,4 +1,5 @@
 import { setTelemetry } from "../telemetryStore";
+import { setConfiguration } from "../configurationStore";
 
 
 export type TelemetryParser = (data: unknown) => void;
@@ -12,11 +13,12 @@ export const telemetryParsers: Record<string, TelemetryParser> = {
     setTelemetry("currentPoint", data as [number, number, number]);
   },
 
-  temperature(data) {
-    setTelemetry("temperature", Number(data));
+  state(data) {
+    setTelemetry("activeState", data as string);
   },
 
-  velocity(data) {
-    setTelemetry("velocity", Number(data));
-  },
+  configuration(data) {
+    const jsonData = JSON.parse(data as string);
+    setConfiguration("sortingPoints", jsonData.sortingPoints as Record<string, [number, number, number]>);
+  }
 };

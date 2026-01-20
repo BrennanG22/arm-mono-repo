@@ -1,4 +1,4 @@
-import { createSignal, onMount, onCleanup } from 'solid-js'
+import { createSignal, onMount } from 'solid-js'
 import './App.css'
 import { startTelemetrySocket } from './stores/telemetry/telemetrySocket'
 import MonitorApplet from './applets/monitorApplet';

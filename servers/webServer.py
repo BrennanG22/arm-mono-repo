@@ -5,7 +5,7 @@ import uvicorn
 
 app = FastAPI()
 
-app.mount("/", StaticFiles(directory="robot-frontend/dist", html=True), name="static")
+app.mount("/", StaticFiles(directory="robot-frontend-v2/dist", html=True), name="static")
 
 def run_api():
     uvicorn.run(app, host="127.0.0.1", port=8000)

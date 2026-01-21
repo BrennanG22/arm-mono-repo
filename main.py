@@ -2,6 +2,7 @@ import json
 import queue
 import threading
 import time
+import logging
 
 
 import re
@@ -25,7 +26,30 @@ reset_point = [1, 0, 1]
 def main():
     web_socket_previous_point = [0, 0, 0]
 
+    logger = logging.getLogger()
 
+    logging.basicConfig(level=logging.WARNING)
+
+    logging.getLogger("root").setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    )
+
+    # Console handler
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    console.setFormatter(formatter)
+
+    # File handler
+    file = logging.FileHandler("app.log", mode='w')
+    file.setLevel(logging.DEBUG)
+    file.setFormatter(formatter)
+
+    logger.addHandler(console)
+    logger.addHandler(file)
+
+    logger.info("Starting Main")
     # Socket server startup
     socket_thread = threading.Thread(target=start_socket_server, daemon=True)
     socket_thread.start()

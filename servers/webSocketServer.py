@@ -1,4 +1,3 @@
-# simple_ws.py
 import asyncio
 import threading
 import websockets
@@ -37,8 +36,7 @@ class WebSocketServer:
         print("Web Socket Client Connected")
         try:
             async for message in websocket:
-                # Echo messages back to client
-                await websocket.send(f"Server received: {message}")
+                pass
         except websockets.exceptions.ConnectionClosed:
             pass
         finally:

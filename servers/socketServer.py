@@ -1,9 +1,11 @@
+import logging
 import socket
 import json
 import os
 import sys
 
 SOCKET_PATH = "my_socket.sock"
+logger = logging.getLogger(__name__)
 
 def create_server():
     """Create a cross-platform Unix-style socket server."""
@@ -11,11 +13,10 @@ def create_server():
     if os.path.exists(SOCKET_PATH):
         os.remove(SOCKET_PATH)
 
-    print("[SERVER] AF_UNIX not supported, falling back to Windows named pipe emulation.")
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(("127.0.0.1", 9999))
     server.listen(1)
-    print("[SERVER] Listening on TCP localhost:9999")
+    logger.debug("INET socket started on port 9999")
     return server
 
 

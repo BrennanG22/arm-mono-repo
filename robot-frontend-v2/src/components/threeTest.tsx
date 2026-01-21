@@ -3,9 +3,6 @@ import * as THREE from "three";
 import { telemetry } from "../stores/telemetryStore";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 
-import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
-import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
-
 export default function ThreeTest() {
   let container!: HTMLDivElement;
 
@@ -24,7 +21,6 @@ export default function ThreeTest() {
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
 
-    // Orbit controls (same as before)
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;

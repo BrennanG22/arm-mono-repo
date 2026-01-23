@@ -1,0 +1,14 @@
+[Unit]
+Description=ARM Controller Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/armController
+ExecStart=/opt/armController/venv/bin/python /opt/armController/app/main.py
+Restart=always
+User=root
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

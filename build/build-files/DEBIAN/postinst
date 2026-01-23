@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+systemctl daemon-reload
+systemctl enable armController.service
+systemctl restart armController.service || true

@@ -1,3 +1,7 @@
 /.idea/
 /logs/
-/build/
+/build/armController-deb/
+*.deb
+/venv/
+/.venv/
+/__pycache__/

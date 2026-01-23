@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+if [ "$1" = "upgrade" ] || [ "$1" = "remove" ]; then
+    systemctl stop armController.service || true
+fi

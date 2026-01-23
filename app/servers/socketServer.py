@@ -7,6 +7,7 @@ import sys
 SOCKET_PATH = "my_socket.sock"
 logger = logging.getLogger(__name__)
 
+
 def create_server():
     """Create a cross-platform Unix-style socket server."""
 
@@ -23,7 +24,7 @@ def create_server():
 def listen_for_messages(server, callback):
     while True:
         conn, _ = server.accept()
-        print("[SERVER] Client connected")
+        logger.debug("Socket client connected")
         with conn:
             buffer = b""
             while True:
@@ -37,5 +38,4 @@ def listen_for_messages(server, callback):
                         msg = json.loads(line.decode())
                         callback(msg)
                     except Exception as e:
-                        print("[ERROR] Invalid JSON:", e)
-
+                        logger.error("Invalid JSON: " + e)

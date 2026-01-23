@@ -1,6 +1,9 @@
 import asyncio
+import logging
 import threading
 import websockets
+
+logger = logging.getLogger()
 
 
 class WebSocketServer:
@@ -28,12 +31,12 @@ class WebSocketServer:
     async def _main(self):
         async with websockets.serve(self._handler, self.host, self.port):
             self.running = True
-            print(f"WebSocket server started on ws://{self.host}:{self.port}")
-            await asyncio.Future()  # Run forever
+            logger.debug(f"WebSocket server started on ws://{self.host}:{self.port}")
+            await asyncio.Future()
 
     async def _handler(self, websocket):
         self.clients.add(websocket)
-        print("Web Socket Client Connected")
+        logger.debug("Websocket client connected")
         try:
             async for message in websocket:
                 pass

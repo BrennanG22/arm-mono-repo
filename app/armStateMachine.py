@@ -1,4 +1,8 @@
+import logging
+
 import dataStores
+
+logger = logging.getLogger()
 
 
 class ArmState:
@@ -21,7 +25,7 @@ class ArmStateMachine:
 
     def goto_state(self, state_name):
         if state_name in self.arm_states:
-            print("State Changing: " + state_name)
+            logger.debug(f"Changing state to: {state_name}")
             self.current_state = self.arm_states.get(state_name)
             dataStores.arm_sorting_data.update(lambda d: setattr(d, "active_state", state_name))
             self.arm_states.get(state_name).on_start()

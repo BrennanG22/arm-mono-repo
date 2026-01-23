@@ -1,15 +1,14 @@
 import json
+import os
 import queue
 import threading
 import time
 import logging
 
-
 import re
 
 import dataStores
 import sortingStates
-
 
 from servers import webServer, webSocketServer, socketServer
 
@@ -18,19 +17,24 @@ from dataStores import arm_telemetry
 INET_data_queue = queue.Queue()
 webSocket_points_data_queue = queue.Queue()
 
-
 test_sort_point = [3, 3, 1]
 reset_point = [1, 0, 1]
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+LOG_FILE = os.path.join(BASE_DIR, "../logs/app.log")
+
+
 
 def main():
+    print(LOG_FILE)
+    if os.path.exists(LOG_FILE):
+        os.remove(LOG_FILE)
+
     web_socket_previous_point = [0, 0, 0]
 
     logger = logging.getLogger()
-
-    logging.basicConfig(level=logging.WARNING)
-
-    logging.getLogger("root").setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG)  # root logger level
 
     formatter = logging.Formatter(
         "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
@@ -42,22 +46,24 @@ def main():
     console.setFormatter(formatter)
 
     # File handler
-    file = logging.FileHandler("app.log", mode='w')
+    file = logging.FileHandler(LOG_FILE, mode="a")
     file.setLevel(logging.DEBUG)
     file.setFormatter(formatter)
 
+    logger.handlers.clear()
     logger.addHandler(console)
     logger.addHandler(file)
 
-    logger.info("Starting Main")
-    # Socket server startup
+    logger.info("Starting main")
+
+    logger.debug("Starting socket server")
     socket_thread = threading.Thread(target=start_socket_server, daemon=True)
     socket_thread.start()
-    print("Server is ready and listening! Executing post-startup code...")
 
-    # Start web server
+    logger.debug("Starting web server")
     webServer.start_api_thread()
 
+    logger.debug("Starting websocket server")
     ws_server = webSocketServer.WebSocketServer(host="localhost")
     ws_server.start()
 
@@ -85,7 +91,6 @@ def main():
             msg = INET_data_queue.get_nowait()
             cls = msg["class"]
             dataStores.arm_sorting_data.update(lambda d: setattr(d, "active_classification", cls))
-            print(dataStores.arm_sorting_data.get().active_state)
         except queue.Empty:
             pass
 
@@ -118,6 +123,7 @@ def convert_and_pass_message(msg, controller):
 def start_socket_server():
     socketServer.listen_for_messages(socketServer.create_server(),
                                      lambda msg: INET_data_queue.put(msg))
+
 
 def default_setup(d: dataStores._BoundaryData):
     d.sorting_points["orange"] = (-1, 1.5, 0.5)

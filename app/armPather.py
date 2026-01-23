@@ -1,6 +1,5 @@
 import math
 import threading
-import time
 from typing import List, Tuple
 
 import coordConverter

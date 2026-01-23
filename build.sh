@@ -10,6 +10,7 @@ ROOT_DIR="$SCRIPT_DIR"
 SRC_APP="$ROOT_DIR/app"
 SRC_DEBIAN="$ROOT_DIR/build/build-files/DEBIAN"
 SRC_SERVICE="$ROOT_DIR/build/build-files/armController.service"
+SRC_REQ="$ROOT_DIR/build/build-files/requirements.txt"
 
 BUILD_SUBDIR="build/armController-deb"
 DEB_ROOT="$ROOT_DIR/$BUILD_SUBDIR"
@@ -34,12 +35,12 @@ mkdir -p "$DEB_ROOT/opt/armController/robot-frontend-v2"
 mkdir -p "$DEB_ROOT/etc/systemd/system"
 
 rsync -av --exclude='__pycache__/' --exclude='*.pyc' "$SRC_APP/" "$DEB_ROOT/opt/armController/app/"
-cp -r "$ROOT_DIR/venv" "$DEB_ROOT/opt/armController"
 cp -r "$ROOT_DIR/robot-frontend-v2/dist" "$DEB_ROOT/opt/armController/robot-frontend-v2"
 cp -r "$SRC_DEBIAN/"* "$DEB_ROOT/DEBIAN/"
 cp "$SRC_SERVICE" "$DEB_ROOT/etc/systemd/system/armController.service"
+cp "$SRC_REQ" "$DEB_ROOT/opt/armController"
 
-chmod 755 "$DEB_ROOT/DEBIAN/postinst" "$DEB_ROOT/DEBIAN/prerm"
+chmod 755 "$DEB_ROOT/DEBIAN/postinst" "$DEB_ROOT/DEBIAN/prerm" "$DEB_ROOT/DEBIAN/postrm"
 chmod 644 "$DEB_ROOT/DEBIAN/control"
 chmod 644 "$DEB_ROOT/etc/systemd/system/armController.service"
 

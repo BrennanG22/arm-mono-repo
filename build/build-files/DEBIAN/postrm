@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+  purge)
+    systemctl stop armController.service || true
+    systemctl disable armController.service || true
+    rm -rf /opt/armController
+    ;;
+esac

@@ -1,5 +1,26 @@
 #!/bin/bash
 set -e
+
+APP_DIR="/opt/armController"
+VENV_DIR="$APP_DIR/venv"
+REQ_FILE="$APP_DIR/requirements.txt"
+
+echo "[armController] Post-install starting"
+
+# 1) Create venv if missing
+if [ ! -d "$VENV_DIR" ]; then
+    echo "[armController] Creating virtualenv"
+    python3 -m venv "$VENV_DIR"
+fi
+
+# 2) Upgrade pip + install deps
+echo "[armController] Installing Python dependencies"
+"$VENV_DIR/bin/pip" install --upgrade pip
+"$VENV_DIR/bin/pip" install -r "$REQ_FILE"
+
+# 3) Reload + enable service
 systemctl daemon-reload
 systemctl enable armController.service
+
+# 4) Restart service (don’t fail package install)
 systemctl restart armController.service || true

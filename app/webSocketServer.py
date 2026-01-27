@@ -2,6 +2,10 @@ import asyncio
 import logging
 import threading
 import websockets
+import json
+
+from armPather import arm_pather_global
+from dataStores import arm_telemetry, ActiveMode, arm_path_data
 
 logger = logging.getLogger()
 
@@ -39,7 +43,7 @@ class WebSocketServer:
         logger.debug("Websocket client connected")
         try:
             async for message in websocket:
-                pass
+                websocket_message_handler(message)
         except websockets.exceptions.ConnectionClosed:
             pass
         finally:
@@ -50,14 +54,30 @@ class WebSocketServer:
             return
 
         async def send():
-            if self.clients:  # Check if there are clients
+            if self.clients:
                 tasks = []
                 for client in list(self.clients):
                     try:
                         tasks.append(client.send(message))
                     except:
-                        pass
+                        logger.error("Failed to send websocket message")
                 if tasks:
                     await asyncio.gather(*tasks, return_exceptions=True)
 
         asyncio.run_coroutine_threadsafe(send(), self.loop)
+
+
+def websocket_message_handler(socket_message):
+    parsed_message = json.loads(socket_message)
+    message = parsed_message["message"]
+    data = parsed_message["data"]
+    telemetry = arm_telemetry.get()
+    pather_data = arm_path_data.get()
+
+    if (message == "move") and (telemetry.active_mode == ActiveMode.MANUAL) and (pather_data is not None):
+        if data["direction"] == "up":
+            updated_point = (telemetry.position[0], telemetry.position[1], telemetry.position[2]+data["step"])
+            arm_pather_global.execute_path(arm_pather_global.get_route_to_point(updated_point, steps=2))
+        if data["direction"] == "down":
+            updated_point = (telemetry.position[0], telemetry.position[1], telemetry.position[2]-data["step"])
+            arm_pather_global.execute_path(arm_pather_global.get_route_to_point(updated_point, steps=2))

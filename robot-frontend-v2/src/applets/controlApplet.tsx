@@ -1,4 +1,5 @@
 import ThreeTest from "../components/threeTest";
+import { sendTelemetryMessage } from "../stores/telemetry/telemetrySocket";
 
 function ControlApplet() {
   return (
@@ -93,8 +94,8 @@ function ControlApplet() {
           <button class="move-button col-start-1 row-start-2">←</button>
           <button class="move-button col-start-3 row-start-2">→</button>
           <button class="move-button col-start-2 row-start-3">↓</button>
-          <button class="move-button col-start-5 row-start-1">Up</button>
-          <button class="move-button col-start-5 row-start-3">Down</button>
+          <button class="move-button col-start-5 row-start-1" onClick={() => sendTelemetryMessage("move", { direction: "up", step: 0.1 })}>Up</button>
+          <button class="move-button col-start-5 row-start-3" onClick={() => sendTelemetryMessage("move", { direction: "down", step: 0.1 })}>Down</button>
         </div>
       </div>
     </div>

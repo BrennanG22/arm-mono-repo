@@ -27,8 +27,23 @@ export function startTelemetrySocket(url: string) {
     }
   };
 
+
   socket.onclose = () => {
     started = false;
     socket = null;
   };
+}
+
+export function sendTelemetryMessage(message: string, data?: unknown) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    console.warn("WebSocket not connected");
+    return;
+  }
+
+  socket.send(
+    JSON.stringify({
+      message,
+      data,
+    })
+  );
 }

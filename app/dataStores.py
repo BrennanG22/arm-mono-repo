@@ -1,16 +1,23 @@
 import threading
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Tuple, List, Optional, TypeVar, Generic, Callable, Dict
 import copy
 
 T = TypeVar("T")
 
 
+class ActiveMode(Enum):
+    MANUAL = 0
+    SORTING = 1
+
+
 @dataclass
 class _ArmTelemetryData:
     servo_current: List[float] = field(default_factory=list)
-    position: Tuple[float, float, float] = (1.0, 0.0, 0.0)
+    position: Tuple[float, float, float] = (2.0, 0.0, 0.0)
     requested_position: Optional[Tuple[float, float, float]] = None
+    active_mode: ActiveMode = ActiveMode.MANUAL
 
 
 @dataclass

@@ -7,7 +7,6 @@ export default function ThreeTest() {
   let container!: HTMLDivElement;
 
   onMount(() => {
-    // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       75,
@@ -131,14 +130,12 @@ export default function ThreeTest() {
         const [x1, y1, z1] = points[i];
         const [x2, y2, z2] = points[i + 1];
 
-        // First vertex of line segment
         positions[index++] = x1;
-        positions[index++] = z1; // Swap Y and Z if needed
+        positions[index++] = z1; 
         positions[index++] = y1;
 
-        // Second vertex of line segment
         positions[index++] = x2;
-        positions[index++] = z2; // Swap Y and Z if needed
+        positions[index++] = z2; 
         positions[index++] = y2;
       }
 

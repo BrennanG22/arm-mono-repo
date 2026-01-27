@@ -32,10 +32,10 @@ class ArmPather:
 
         return cartesian_points_3d
 
-    def get_route_to_point(self, route_point: Tuple[float, float, float]):
+    def get_route_to_point(self, route_point: Tuple[float, float, float], steps=20):
         cartesian_points_3d, r_points_3d, theta_points_3d, phi_points_3d = (
             coordConverter.process_3d_trajectory(
-                dataStores.arm_telemetry.get().position, route_point, num_points=20,
+                dataStores.arm_telemetry.get().position, route_point, num_points=steps,
                 r_constraint=(0.5, 5.0), theta_constraint=(0, 2 * math.pi), phi_constraint=(0, math.pi / 2)
             )
         )

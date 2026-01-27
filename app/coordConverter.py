@@ -1,6 +1,7 @@
 import numpy as np
 import math
 
+
 def cartesian_to_spherical(x: float, y: float, z: float) -> [float, float, float]:
     r = math.sqrt(x ** 2 + y ** 2 + z ** 2)
     theta = math.atan2(y, x)
@@ -23,7 +24,6 @@ def spherical_to_cartesian(r: float, theta: float, phi: float) -> [float, float,
 def generate_spherical_points(start_r, start_theta, start_phi,
                               end_r, end_theta, end_phi, num_points=10,
                               r_constraint=None, theta_constraint=None, phi_constraint=None):
-
     r_points = np.linspace(start_r, end_r, num_points + 2)
     theta_points = np.linspace(start_theta, end_theta, num_points + 2)
     phi_points = np.linspace(start_phi, end_phi, num_points + 2)
@@ -59,6 +59,3 @@ def process_3d_trajectory(start_point: [float, float, float], end_point: [float,
         cartesian_points.append((x, y, z))
 
     return cartesian_points, r_points, theta_points, phi_points
-
-
-

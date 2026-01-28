@@ -90,12 +90,12 @@ function ControlApplet() {
       </div>
       <div class="h-full control-wrapper col-span-2">
         <div class="grid grid-cols-5 grid-rows-4 aspect-square control-panel">
-          <button class="move-button col-start-2 row-start-1">↑</button>
-          <button class="move-button col-start-1 row-start-2">←</button>
-          <button class="move-button col-start-3 row-start-2">→</button>
-          <button class="move-button col-start-2 row-start-3">↓</button>
-          <button class="move-button col-start-5 row-start-1" onClick={() => sendTelemetryMessage("move", { direction: "up", step: 0.1 })}>Up</button>
-          <button class="move-button col-start-5 row-start-3" onClick={() => sendTelemetryMessage("move", { direction: "down", step: 0.1 })}>Down</button>
+          <button class="move-button col-start-2 row-start-1" onClick={() => sendTelemetryMessage("move", { direction: "x+", step: 0.1 })}>↑</button>
+          <button class="move-button col-start-1 row-start-2" onClick={() => sendTelemetryMessage("move", { direction: "y-", step: 0.1 })}>←</button>
+          <button class="move-button col-start-3 row-start-2" onClick={() => sendTelemetryMessage("move", { direction: "y+", step: 0.1 })}>→</button>
+          <button class="move-button col-start-2 row-start-3" onClick={() => sendTelemetryMessage("move", { direction: "x-", step: 0.1 })}>↓</button>
+          <button class="move-button col-start-5 row-start-1" onClick={() => sendTelemetryMessage("move", { direction: "z+", step: 0.1 })}>Up</button>
+          <button class="move-button col-start-5 row-start-3" onClick={() => sendTelemetryMessage("move", { direction: "z-", step: 0.1 })}>Down</button>
         </div>
       </div>
     </div>

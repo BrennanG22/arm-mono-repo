@@ -5,6 +5,7 @@ UPSTREAM_VERSION="0.1.0"
 PACKAGE_NAME="armController"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "Script directory: $SCRIPT_DIR"
 ROOT_DIR="$SCRIPT_DIR"
 
 SRC_APP="$ROOT_DIR/app"

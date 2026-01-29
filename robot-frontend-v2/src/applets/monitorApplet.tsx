@@ -1,5 +1,6 @@
 import TelemetryChart from "../components/telemetryChart";
 import ThreeTest from "../components/threeTest";
+import { appState } from "../stores/appStateStore";
 import { telemetry } from "../stores/telemetryStore";
 
 function MonitorApplet() {
@@ -75,8 +76,7 @@ function MonitorApplet() {
             <div class="metric">
               <div class="metric-label">Status</div>
               <div class="metric-value">
-                {/* Placeholder */}
-                Enabled
+                {appState.socketConnected ? "Connected" : "Disconnected"}
               </div>
             </div>
 

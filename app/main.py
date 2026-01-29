@@ -88,8 +88,16 @@ def main():
     if arm_telemetry.get().active_mode == ActiveMode.SORTING:
         sorting_state_machine.goto_state("move_to_pickup")
 
+    # TEMP FIX: Part of temp fix below
+    mode = arm_telemetry.get().active_mode
+
     while True:
         time.sleep(0.001)
+        # TEMP FIX: Remedy issue of transition from manual to sorting
+        if mode == ActiveMode.SORTING and arm_telemetry.get().active_mode == ActiveMode.MANUAL:
+            sorting_state_machine.current_state = None
+        mode = arm_telemetry.get().active_mode
+
         try:
             ws_points = dataStores.arm_path_data.get().active_path
             ##TEMP FIX
@@ -130,6 +138,8 @@ def main():
                 ws_server.send_to_all(json_str)
 
         if arm_telemetry.get().active_mode is dataStores.ActiveMode.SORTING:
+            if sorting_state_machine.current_state is None:
+                sorting_state_machine.goto_state("move_to_pickup")
             sorting_state_machine.update()
         elif arm_telemetry.get().active_mode is dataStores.ActiveMode.MANUAL:
             pass

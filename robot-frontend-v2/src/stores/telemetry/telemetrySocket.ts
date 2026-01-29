@@ -1,13 +1,25 @@
 import { telemetryParsers } from "./telemetryParsers";
+import { setAppState } from "../appStateStore";
 
 let socket: WebSocket | null = null;
-let started = false;
+let url: string | null = null;
 
-export function startTelemetrySocket(url: string) {
-  if (started) return;
-  started = true;
+let reconnectAttempts = 0;
+let reconnectTimer: number | undefined;
+
+const MAX_RECONNECT_DELAY = 10_000;
+
+function connect() {
+  if (!url) return;
+  if (socket) return;
 
   socket = new WebSocket(url);
+
+  socket.onopen = () => {
+    reconnectAttempts = 0;
+    setAppState("socketConnected", true);
+    console.log("Telemetry connected");
+  };
 
   socket.onmessage = (event) => {
     try {
@@ -27,11 +39,49 @@ export function startTelemetrySocket(url: string) {
     }
   };
 
-
   socket.onclose = () => {
-    started = false;
-    socket = null;
+    cleanup();
+    scheduleReconnect();
   };
+
+  socket.onerror = () => {
+    socket?.close();
+  };
+}
+
+function cleanup() {
+  socket = null;
+  setAppState("socketConnected", false);
+}
+
+function scheduleReconnect() {
+  if (!url) return;
+
+  const delay = Math.min(
+    1000 * 2 ** reconnectAttempts++,
+    MAX_RECONNECT_DELAY
+  );
+
+  console.warn(`Telemetry reconnecting in ${delay}ms`);
+
+  reconnectTimer = window.setTimeout(() => {
+    reconnectTimer = undefined;
+    connect();
+  }, delay);
+}
+
+export function startTelemetrySocket(wsUrl: string) {
+  url = wsUrl;
+  connect();
+}
+
+export function stopTelemetrySocket() {
+  reconnectTimer && clearTimeout(reconnectTimer);
+  reconnectTimer = undefined;
+  url = null;
+
+  socket?.close();
+  cleanup();
 }
 
 export function sendTelemetryMessage(message: string, data?: unknown) {
@@ -40,10 +90,5 @@ export function sendTelemetryMessage(message: string, data?: unknown) {
     return;
   }
 
-  socket.send(
-    JSON.stringify({
-      message,
-      data,
-    })
-  );
+  socket.send(JSON.stringify({ message, data }));
 }

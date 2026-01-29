@@ -1,7 +1,10 @@
+import { createSignal } from "solid-js";
 import ThreeTest from "../components/threeTest";
 import { sendTelemetryMessage } from "../stores/telemetry/telemetrySocket";
 
 function ControlApplet() {
+  const [controlMode, setControlMode] = createSignal("manual");
+  const [stepSize, setStepSize] = createSignal(0.1);
   return (
     <div class="grid grid-cols-2 grid-rows-2 gap-4 h-full w-full">
       <style>
@@ -24,7 +27,6 @@ function ControlApplet() {
   letter-spacing: 0.12em;
 }
 
-/* === MOVE BUTTONS === */
 .move-button {
   background: linear-gradient(180deg, #0f172a, #020617);
   border: 1px solid #1e293b;
@@ -88,14 +90,38 @@ function ControlApplet() {
           Live Camera Feed
         </div>
       </div>
-      <div class="h-full control-wrapper col-span-2">
+      <div class="h-full control-wrapper grid-cols-2 col-span-2">
         <div class="grid grid-cols-5 grid-rows-4 aspect-square control-panel">
-          <button class="move-button col-start-2 row-start-1" onClick={() => sendTelemetryMessage("move", { direction: "x+", step: 0.1 })}>↑</button>
-          <button class="move-button col-start-1 row-start-2" onClick={() => sendTelemetryMessage("move", { direction: "y-", step: 0.1 })}>←</button>
-          <button class="move-button col-start-3 row-start-2" onClick={() => sendTelemetryMessage("move", { direction: "y+", step: 0.1 })}>→</button>
-          <button class="move-button col-start-2 row-start-3" onClick={() => sendTelemetryMessage("move", { direction: "x-", step: 0.1 })}>↓</button>
-          <button class="move-button col-start-5 row-start-1" onClick={() => sendTelemetryMessage("move", { direction: "z+", step: 0.1 })}>Up</button>
-          <button class="move-button col-start-5 row-start-3" onClick={() => sendTelemetryMessage("move", { direction: "z-", step: 0.1 })}>Down</button>
+          <button class="move-button col-start-2 row-start-1" onClick={() => sendTelemetryMessage("move", { direction: "x+", step: stepSize() })}>x+</button>
+          <button class="move-button col-start-1 row-start-2" onClick={() => sendTelemetryMessage("move", { direction: "y-", step: stepSize() })}>y-</button>
+          <button class="move-button col-start-3 row-start-2" onClick={() => sendTelemetryMessage("move", { direction: "y+", step: stepSize() })}>y+</button>
+          <button class="move-button col-start-2 row-start-3" onClick={() => sendTelemetryMessage("move", { direction: "x-", step: stepSize() })}>x-</button>
+          <button class="move-button col-start-5 row-start-1" onClick={() => sendTelemetryMessage("move", { direction: "z+", step: stepSize() })}>z+</button>
+          <button class="move-button col-start-5 row-start-3" onClick={() => sendTelemetryMessage("move", { direction: "z-", step: stepSize() })}>z-</button>
+        </div>
+        <div>
+          <select
+            class="w-full p-2 rounded-md border border-gray-300 mb-4"
+            value={controlMode()}
+            onChange={(e) => {
+              setControlMode(e.currentTarget.value);
+              sendTelemetryMessage("setControlMode", { mode: e.currentTarget.value });
+            }}
+          >
+            <option value="manual">Manual Control</option>
+            <option value="sorting">Sorting Control</option>
+          </select>
+          <input
+            class="w-full p-2 rounded-md border border-gray-300"
+            type="number"
+            placeholder="Step size"
+            value={stepSize()}
+            onInput={(e) => {
+              const val = parseFloat(e.currentTarget.value);
+              setStepSize(val);
+              sendTelemetryMessage("setStepSize", { stepSize: val });
+            }}
+          />
         </div>
       </div>
     </div>

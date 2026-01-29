@@ -2,7 +2,18 @@
 import { render } from 'solid-js/web'
 import './index.css'
 import App from './App.tsx'
+import { Route, Router } from '@solidjs/router'
+import ControlApplet from './applets/controlApplet.tsx'
+import MonitorApplet from './applets/monitorApplet.tsx'
+import ConfigureApplet from './applets/configureApplet.tsx'
 
 const root = document.getElementById('root')
 
-render(() => <App />, root!)
+render(() =>
+  <Router root={App}>
+    <Route path="/" component={MonitorApplet} />
+    <Route path="/monitor" component={MonitorApplet} />
+    <Route path="/control" component={ControlApplet} />
+    <Route path="/configure" component={ConfigureApplet} />
+    {/* <Route path="/update" component={UpdateApplet} /> */}
+  </Router>, root!)

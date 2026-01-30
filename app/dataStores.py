@@ -15,7 +15,7 @@ class ActiveMode(Enum):
 @dataclass
 class _ArmTelemetryData:
     servo_current: List[float] = field(default_factory=list)
-    position: Tuple[float, float, float] = (2.0, 0.0, 0.0)
+    position: Tuple[float, float, float] = (1.0, 1.0, 1.0)
     requested_position: Optional[Tuple[float, float, float]] = None
     active_mode: ActiveMode = ActiveMode.MANUAL
 

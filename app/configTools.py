@@ -28,7 +28,7 @@ class YAMLLoader:
             self._mtime = os.path.getmtime(self.path)
             logging.getLogger().debug("YAML file reloaded at path: " + self.path)
         except OSError as e:
-            logging.getLogger().error("YAML file failed to load: " + self.path + "with error: " + e)
+            logging.getLogger().error("YAML file failed to load: " + self.path + "with error: " + str(e))
 
     def check_reload(self) -> bool:
         mtime = os.path.getmtime(self.path)

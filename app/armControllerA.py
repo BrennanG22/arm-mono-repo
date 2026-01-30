@@ -2,18 +2,26 @@ import time
 from typing import List, Tuple
 
 from dataStores import arm_telemetry
+from cartesian_to_joints import ArmController
 
 Point = Tuple[float, float, float]
 
 
-class ArmController:
+class ArmControllerA:
     is_active = True
     move_buffer: List[Point] = None
+    armController = ArmController()
+
+    def __init__(self):
+        self.armController.startup()
+        self.armController.move_to_position(1, 1, 1)
+        pass
 
     def move_to_point(self, point: [float, float, float]):
         if self.is_active:
             arm_telemetry.update(lambda d: setattr(d, "requested_position", point))
-            # Call Gavin code in thread
+            self.armController.move_to_position(point[0], point[1], point[2])
+            self.armController.gripper(0)
             time.sleep(0.1)
             self.on_move_complete(point)
 

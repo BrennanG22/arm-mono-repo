@@ -3,7 +3,7 @@ import threading
 from typing import List, Tuple
 
 import coordConverter
-import armController
+import armControllerA
 import dataStores
 
 
@@ -14,7 +14,7 @@ class ArmPather:
     current_pathing_pos: [float, float, float] = None
 
     def __init__(self):
-        self.controller = armController.ArmController()
+        self.controller = armControllerA.ArmControllerA()
         pass
 
     def route_to_new_point(self, new_point: [float, float, float]):

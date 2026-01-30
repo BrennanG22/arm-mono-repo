@@ -3,3 +3,6 @@ fastapi
 uvicorn
 websockets
 pyyaml
+ikpy
+adafruit-circuitpython-servokit
+setuptools

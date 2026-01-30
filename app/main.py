@@ -12,7 +12,8 @@ import socketServer
 import sortingStates
 import webServer
 import webSocketServer
-from dataStores import arm_telemetry, ActiveMode
+from dataStores import arm_telemetry, ActiveMode, parser_arg_data
+from armPather import init_arm_pather
 
 INET_data_queue = queue.Queue()
 webSocket_points_data_queue = queue.Queue()
@@ -35,8 +36,16 @@ def main():
         help="Path to config file"
     )
 
+    parser.add_argument(
+        "-d",
+        action="store_false",
+        help="Disable IK"
+    )
+
     args = parser.parse_args()
     config_path = args.config
+
+    parser_arg_data.update(lambda d: setattr(d, "use_ik", args.d))
 
     if os.path.exists(LOG_FILE):
         os.remove(LOG_FILE)
@@ -82,6 +91,8 @@ def main():
     logger.debug("Starting websocket server")
     ws_server = webSocketServer.WebSocketServer(host="localhost")
     ws_server.start()
+
+    init_arm_pather()
 
     # Start new state machine
     sorting_state_machine = sortingStates.init()

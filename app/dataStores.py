@@ -19,6 +19,10 @@ class _ArmTelemetryData:
     requested_position: Optional[Tuple[float, float, float]] = None
     active_mode: ActiveMode = ActiveMode.MANUAL
 
+@dataclass
+class _ParserArguments:
+    use_ik: bool = False
+
 
 @dataclass
 class _ArmPathData:
@@ -58,3 +62,4 @@ arm_telemetry = DataStore(_ArmTelemetryData())
 arm_path_data = DataStore(_ArmPathData())
 arm_sorting_data = DataStore(_SortingData())
 arm_boundary_data = DataStore(_BoundaryData())
+parser_arg_data = DataStore(_ParserArguments())

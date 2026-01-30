@@ -1,6 +1,6 @@
 import math
 import threading
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import coordConverter
 import armControllerA
@@ -9,7 +9,6 @@ import dataStores
 
 class ArmPather:
     active_routing = False
-
     current_pos: float = [0, 0, 0]
     current_pathing_pos: [float, float, float] = None
 
@@ -58,4 +57,18 @@ class ArmPather:
         self.active_routing = False
 
 
-arm_pather_global = ArmPather()
+arm_pather: Optional["ArmPather"] = None
+
+
+def init_arm_pather() -> None:
+    global arm_pather
+    if arm_pather is not None:
+        raise RuntimeError("ArmPather already initialized")
+
+    arm_pather = ArmPather()
+
+
+def get_arm_pather() -> ArmPather:
+    if arm_pather is None:
+        raise RuntimeError("ArmPather not initialized yet")
+    return arm_pather

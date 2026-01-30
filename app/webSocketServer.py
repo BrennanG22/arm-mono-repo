@@ -4,7 +4,7 @@ import threading
 import websockets
 import json
 
-from armPather import arm_pather_global
+from armPather import get_arm_pather, ArmPather
 from dataStores import arm_telemetry, ActiveMode, arm_path_data
 
 logger = logging.getLogger()
@@ -73,28 +73,29 @@ def websocket_message_handler(socket_message):
     data = parsed_message["data"]
     telemetry = arm_telemetry.get()
     pather_data = arm_path_data.get()
+    pather = get_arm_pather()
 
     if (message == "move") and (telemetry.active_mode == ActiveMode.MANUAL) and (pather_data is not None):
         if data["direction"] == "x+":
             updated_point = (telemetry.position[0] + data["step"], telemetry.position[1], telemetry.position[2])
-            arm_pather_global.execute_path(arm_pather_global.get_route_to_point(updated_point, steps=2))
+            pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
         elif data["direction"] == "x-":
             updated_point = (telemetry.position[0] - data["step"], telemetry.position[1], telemetry.position[2])
-            arm_pather_global.execute_path(arm_pather_global.get_route_to_point(updated_point, steps=2))
+            pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
 
         elif data["direction"] == "y+":
             updated_point = (telemetry.position[0], telemetry.position[1] + data["step"], telemetry.position[2])
-            arm_pather_global.execute_path(arm_pather_global.get_route_to_point(updated_point, steps=2))
+            pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
         elif data["direction"] == "y-":
             updated_point = (telemetry.position[0], telemetry.position[1] - data["step"], telemetry.position[2])
-            arm_pather_global.execute_path(arm_pather_global.get_route_to_point(updated_point, steps=2))
+            pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
 
         elif data["direction"] == "z+":
             updated_point = (telemetry.position[0], telemetry.position[1], telemetry.position[2] + data["step"])
-            arm_pather_global.execute_path(arm_pather_global.get_route_to_point(updated_point, steps=2))
+            pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
         elif data["direction"] == "z-":
             updated_point = (telemetry.position[0], telemetry.position[1], telemetry.position[2] - data["step"])
-            arm_pather_global.execute_path(arm_pather_global.get_route_to_point(updated_point, steps=2))
+            pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
 
     if message == "setControlMode":
         if data["mode"] == "manual":

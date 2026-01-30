@@ -3,7 +3,7 @@ from typing import Tuple
 import numpy as np
 
 import armStateMachine
-from armPather import arm_pather_global
+from armPather import get_arm_pather, ArmPather
 import dataStores
 
 
@@ -25,15 +25,17 @@ def init():
 class _MoveToPickup:
     pick_up_point: Tuple[float, float, float] = None
     machine: armStateMachine.ArmStateMachine
+    pather: ArmPather
 
     def __init__(self, machine):
         self.machine = machine
+        self.pather = get_arm_pather()
 
     def move_to_pickup_start(self):
         data = dataStores.arm_boundary_data.get()
         self.pick_up_point = data.conveyor_pickup_point
-        path = arm_pather_global.get_route_to_point(self.pick_up_point)
-        arm_pather_global.execute_path(path)
+        path = self.pather.get_route_to_point(self.pick_up_point)
+        self.pather.execute_path(path)
 
     def move_to_pickup_update(self):
         current_data = dataStores.arm_telemetry.get()
@@ -48,16 +50,18 @@ class _MoveToPickup:
 class _LiftUp:
     lift_up_point: Tuple[float, float, float] = None
     machine: armStateMachine.ArmStateMachine
+    pather: ArmPather
 
     def __init__(self, machine):
         self.machine = machine
+        self.pather = get_arm_pather()
 
     def lift_up_start(self):
         current_data = dataStores.arm_telemetry.get()
         x, y, z = current_data.position
         self.lift_up_point = (x, y, z + 1)
-        path = arm_pather_global.get_route_to_point(self.lift_up_point)
-        arm_pather_global.execute_path(path)
+        path = self.pather.get_route_to_point(self.lift_up_point)
+        self.pather.execute_path(path)
 
     def lift_up_update(self):
         current_data = dataStores.arm_telemetry.get()
@@ -71,9 +75,12 @@ class _LiftUp:
 
 class _MoveToSort:
     sorting_point: tuple[float, float, float] = None
+    pather: ArmPather
+
 
     def __init__(self, machine):
         self.machine = machine
+        self.pather = get_arm_pather()
 
     def move_to_sort_start(self):
         current_sorting_data = dataStores.arm_sorting_data.get()
@@ -83,8 +90,8 @@ class _MoveToSort:
 
         if classification in boundaries and classification is not None:
             self.sorting_point = boundaries[classification]
-            path = arm_pather_global.get_route_to_point(self.sorting_point)
-            arm_pather_global.execute_path(path)
+            path = self.pather.get_route_to_point(self.sorting_point)
+            self.pather.execute_path(path)
         else:
             self.machine.goto_state("move_to_pickup")
 

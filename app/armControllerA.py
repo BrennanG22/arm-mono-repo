@@ -21,14 +21,13 @@ class ArmControllerA:
         pass
 
     def move_to_point(self, point: [float, float, float]):
+        arm_telemetry.update(lambda d: setattr(d, "requested_position", point))
         if self.is_active:
-            arm_telemetry.update(lambda d: setattr(d, "requested_position", point))
-            if self.is_active:
-                self.armController.move_to_position(point[0], point[1], point[2])
-                self.armController.gripper(0)
-            else:
-                time.sleep(0.1)
-            self.on_move_complete(point)
+            self.armController.move_to_position(point[0], point[1], point[2])
+            self.armController.gripper(0)
+        else:
+            time.sleep(0.1)
+        self.on_move_complete(point)
 
     def on_move_complete(self, point: [float, float, float]):
         arm_telemetry.update(lambda d: setattr(d, "requested_position", None))

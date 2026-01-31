@@ -3,6 +3,8 @@ import * as THREE from "three";
 import { telemetry } from "../stores/telemetryStore";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 
+const SCALE_FACTOR = 5;
+
 export default function ThreeTest() {
   let container!: HTMLDivElement;
 
@@ -83,7 +85,7 @@ export default function ThreeTest() {
 
         // Update point positions
         pts.forEach(([x, y, z], i) => {
-          dummy.position.set(x, z, y);
+          dummy.position.set(x/SCALE_FACTOR, z/SCALE_FACTOR, y/SCALE_FACTOR);
           dummy.updateMatrix();
           pointsInstancedMesh!.setMatrixAt(i, dummy.matrix);
         });
@@ -109,7 +111,7 @@ export default function ThreeTest() {
       const currentPt = telemetry.currentPoint;
       if (currentPt) {
         const [x, y, z] = currentPt;
-        currentPointMesh.position.set(x, z, y);
+        currentPointMesh.position.set(x/SCALE_FACTOR, z/SCALE_FACTOR, y/SCALE_FACTOR);
       }
 
       controls.update();
@@ -130,13 +132,13 @@ export default function ThreeTest() {
         const [x1, y1, z1] = points[i];
         const [x2, y2, z2] = points[i + 1];
 
-        positions[index++] = x1;
-        positions[index++] = z1; 
-        positions[index++] = y1;
+        positions[index++] = x1/SCALE_FACTOR;
+        positions[index++] = z1/SCALE_FACTOR; 
+        positions[index++] = y1/SCALE_FACTOR;
 
-        positions[index++] = x2;
-        positions[index++] = z2; 
-        positions[index++] = y2;
+        positions[index++] = x2/SCALE_FACTOR;
+        positions[index++] = z2/SCALE_FACTOR; 
+        positions[index++] = y2/SCALE_FACTOR;
       }
 
       lineGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));

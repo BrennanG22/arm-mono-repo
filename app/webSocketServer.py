@@ -41,6 +41,7 @@ class WebSocketServer:
     async def _handler(self, websocket):
         self.clients.add(websocket)
         logger.debug("Websocket client connected")
+        self._initial_connect_handler()
         try:
             async for message in websocket:
                 websocket_message_handler(message)
@@ -65,6 +66,24 @@ class WebSocketServer:
                     await asyncio.gather(*tasks, return_exceptions=True)
 
         asyncio.run_coroutine_threadsafe(send(), self.loop)
+
+    def _initial_connect_handler(self):
+        telemetry = arm_telemetry.get()
+        pos = telemetry.position
+
+        if pos is not None:
+            json_str = json.dumps({
+                "message": "currentPoint",
+                "data": [float(pos[0]), float(pos[1]), float(pos[2])]
+            })
+            self.send_to_all(json_str)
+
+        mode = telemetry.active_mode
+        json_str = json.dumps({
+            "message": "activeMode",
+            "data": mode.value
+        })
+        self.send_to_all(json_str)
 
 
 def websocket_message_handler(socket_message):

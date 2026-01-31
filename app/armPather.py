@@ -54,6 +54,7 @@ class ArmPather:
         for x, y, z in path:
             self.controller.move_to_point([x, y, z])
             self.current_pathing_pos = [x, y, z]
+        dataStores.arm_path_data.update(lambda d: setattr(d, "active_path", []))
         self.active_routing = False
 
 

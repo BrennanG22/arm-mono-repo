@@ -8,8 +8,8 @@ T = TypeVar("T")
 
 
 class ActiveMode(Enum):
-    MANUAL = 0
-    SORTING = 1
+    MANUAL = "manual"
+    SORTING = "sorting"
 
 
 @dataclass
@@ -26,7 +26,7 @@ class _ParserArguments:
 
 @dataclass
 class _ArmPathData:
-    active_path: List[Tuple[float, float, float]] = None
+    active_path: Optional[Tuple[float, float, float]] = None
 
 
 @dataclass

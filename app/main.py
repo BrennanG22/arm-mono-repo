@@ -47,33 +47,12 @@ def main():
 
     parser_arg_data.update(lambda d: setattr(d, "use_ik", args.d))
 
-    if os.path.exists(LOG_FILE):
-        os.remove(LOG_FILE)
+    init_logger()
+    logger = logging.getLogger()
 
     web_socket_previous_point = [0, 0, 0]
-
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-
-    formatter = logging.Formatter(
-        "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-    )
-
-    # Console handler
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
-    console.setFormatter(formatter)
-
-    # File handler
-    file = logging.FileHandler(LOG_FILE, mode="a")
-    file.setLevel(logging.DEBUG)
-    file.setFormatter(formatter)
-
-    logger.handlers.clear()
-    logger.addHandler(console)
-    logger.addHandler(file)
-
-    logging.getLogger("websockets").setLevel(logging.WARNING)
+    prev_path = []
+    prev_state = None
 
     logger.info("Starting main")
 
@@ -112,20 +91,26 @@ def main():
         try:
             ws_points = dataStores.arm_path_data.get().active_path
             ##TEMP FIX
-            if ws_points is not None:
+            if ws_points is not None and ws_points != prev_path:
                 data_serializable = [[float(x), float(y), float(z)] for x, y, z in ws_points]
                 json_point_data = json.dumps(data_serializable)
                 json_str = "{\"message\": \"path\", \"data\": " + json_point_data + "}"
                 ws_server.send_to_all(json_str)
+                prev_path = ws_points
+            elif ws_points != prev_path:
+                json_str = "{\"message\": \"path\", \"data\": []}"
+                prev_path = []
+                ws_server.send_to_all(json_str)
 
-                state = "Manual"
-                if dataStores.arm_sorting_data.get().active_state is not None:
-                    state = dataStores.arm_sorting_data.get().active_state
+            sorting_data = dataStores.arm_sorting_data.get()
+            state = "Manual"
+            if sorting_data.active_state is not None and mode == ActiveMode.SORTING:
+                state = sorting_data.active_state
+
+            if prev_state != state:
                 state_str = "{\"message\": \"state\", \"data\": \"" + state + "\"}"
                 ws_server.send_to_all(state_str)
-            else:
-                json_str = "{\"message\": \"path\", \"data\": []}"
-                ws_server.send_to_all(json_str)
+                prev_state = state
 
         except queue.Empty:
             pass
@@ -161,6 +146,31 @@ def start_socket_server():
     socketServer.listen_for_messages(socketServer.create_server(),
                                      lambda msg: INET_data_queue.put(msg))
 
+def init_logger():
+    if os.path.exists(LOG_FILE):
+        os.remove(LOG_FILE)
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    )
+
+    # Console handler
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    console.setFormatter(formatter)
+
+    # File handler
+    file = logging.FileHandler(LOG_FILE, mode="a")
+    file.setLevel(logging.DEBUG)
+    file.setFormatter(formatter)
+
+    logger.handlers.clear()
+    logger.addHandler(console)
+    logger.addHandler(file)
+
+    logging.getLogger("websockets").setLevel(logging.WARNING)
 
 if __name__ == "__main__":
     main()

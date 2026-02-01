@@ -4,6 +4,7 @@ export interface Telemetry {
   points: [number, number, number][];
   currentPoint?: [number, number, number];
   activeState?: string;
+  activeMode?: string;
 }
 
 export const [telemetry, setTelemetry] = createStore<Telemetry>({

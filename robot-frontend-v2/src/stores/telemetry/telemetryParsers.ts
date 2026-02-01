@@ -20,5 +20,9 @@ export const telemetryParsers: Record<string, TelemetryParser> = {
   configuration(data) {
     const jsonData = JSON.parse(data as string);
     setConfiguration("sortingPoints", jsonData.sortingPoints as Record<string, [number, number, number]>);
+  },
+
+  activeMode(data) {
+    setTelemetry("activeMode", data as string);
   }
 };

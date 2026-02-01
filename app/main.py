@@ -18,14 +18,12 @@ from armPather import init_arm_pather
 INET_data_queue = queue.Queue()
 webSocket_points_data_queue = queue.Queue()
 
-test_sort_point = [3, 3, 1]
-reset_point = [1, 0, 1]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 LOG_FILE = os.path.join(BASE_DIR, "../logs/app.log")
 
-DEFAULT_CONFIG_PATH = "/etc/armController/config.yaml"
+DEFAULT_CONFIG_PATH = "/etc/armController/waypoint_config.yaml"
 
 
 def main():
@@ -146,6 +144,7 @@ def start_socket_server():
     socketServer.listen_for_messages(socketServer.create_server(),
                                      lambda msg: INET_data_queue.put(msg))
 
+
 def init_logger():
     if os.path.exists(LOG_FILE):
         os.remove(LOG_FILE)
@@ -171,6 +170,7 @@ def init_logger():
     logger.addHandler(file)
 
     logging.getLogger("websockets").setLevel(logging.WARNING)
+
 
 if __name__ == "__main__":
     main()

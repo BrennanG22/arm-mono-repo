@@ -1,10 +1,25 @@
-import { createSignal } from "solid-js";
+import { createEffect, createSignal, on, onMount } from "solid-js";
 import ThreeTest from "../components/threeTest";
 import { sendTelemetryMessage } from "../stores/telemetry/telemetrySocket";
+import { telemetry } from "../stores/telemetryStore";
 
 function ControlApplet() {
-  const [controlMode, setControlMode] = createSignal("manual");
+  const [controlMode, setControlMode] = createSignal("");
   const [stepSize, setStepSize] = createSignal(0.1);
+
+  let initialized = false;
+
+  createEffect(
+    on(
+      () => telemetry.activeMode,
+      (mode) => {
+        if (!initialized && mode !== undefined) {
+          setControlMode(mode);
+          initialized = true;
+        }
+      }
+    )
+  );
   return (
     <div class="grid grid-cols-2 grid-rows-2 gap-4 h-full w-full">
       <style>
@@ -108,6 +123,9 @@ function ControlApplet() {
               sendTelemetryMessage("setControlMode", { mode: e.currentTarget.value });
             }}
           >
+            <option value="" disabled hidden>
+              Loading…
+            </option>
             <option value="manual">Manual Control</option>
             <option value="sorting">Sorting Control</option>
           </select>

@@ -85,7 +85,7 @@ export default function ThreeTest() {
 
         // Update point positions
         pts.forEach(([x, y, z], i) => {
-          dummy.position.set(x/SCALE_FACTOR, z/SCALE_FACTOR, y/SCALE_FACTOR);
+          dummy.position.set(x/SCALE_FACTOR, z/SCALE_FACTOR, -y/SCALE_FACTOR);
           dummy.updateMatrix();
           pointsInstancedMesh!.setMatrixAt(i, dummy.matrix);
         });
@@ -111,7 +111,7 @@ export default function ThreeTest() {
       const currentPt = telemetry.currentPoint;
       if (currentPt) {
         const [x, y, z] = currentPt;
-        currentPointMesh.position.set(x/SCALE_FACTOR, z/SCALE_FACTOR, y/SCALE_FACTOR);
+        currentPointMesh.position.set(x/SCALE_FACTOR, z/SCALE_FACTOR, -y/SCALE_FACTOR);
       }
 
       controls.update();
@@ -134,11 +134,11 @@ export default function ThreeTest() {
 
         positions[index++] = x1/SCALE_FACTOR;
         positions[index++] = z1/SCALE_FACTOR; 
-        positions[index++] = y1/SCALE_FACTOR;
+        positions[index++] = -y1/SCALE_FACTOR;
 
         positions[index++] = x2/SCALE_FACTOR;
         positions[index++] = z2/SCALE_FACTOR; 
-        positions[index++] = y2/SCALE_FACTOR;
+        positions[index++] = -y2/SCALE_FACTOR;
       }
 
       lineGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));

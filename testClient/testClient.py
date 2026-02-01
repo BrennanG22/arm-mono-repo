@@ -15,7 +15,7 @@ def make_random_point():
 
 
 def main():
-    time.sleep(3)
+    time.sleep(4)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print(f"Connecting to {HOST}:{PORT}...")
         s.connect((HOST, PORT))

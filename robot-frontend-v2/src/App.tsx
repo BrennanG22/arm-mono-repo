@@ -2,6 +2,7 @@ import { onCleanup, onMount, } from 'solid-js';
 import {  A, useLocation, } from '@solidjs/router';
 
 import './App.css';
+import "./styles/ui.css";
 import { startTelemetrySocket, stopTelemetrySocket } from './stores/telemetry/telemetrySocket';
 
 

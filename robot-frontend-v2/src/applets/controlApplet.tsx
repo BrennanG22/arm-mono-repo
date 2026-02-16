@@ -2,7 +2,8 @@ import { createEffect, createSignal, on } from "solid-js";
 import ThreeTest from "../components/threeTest";
 import { sendTelemetryMessage } from "../stores/telemetry/telemetrySocket";
 import { telemetry } from "../stores/telemetryStore";
-import { Select } from "../components/ui/Select";
+import { Select } from "../components/ui/fields/Select";
+import { LargeContainer } from "../components/ui/Containers";
 
 // Reusable MoveButton Component
 function MoveButton(props: {
@@ -109,7 +110,7 @@ function ControlApplet() {
         </div>
 
         {/* Control Settings */}
-        <div class="bg-slate-900 rounded-2xl shadow-2xl p-6 border border-slate-800/50">
+        <LargeContainer> 
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-slate-300 mb-2">
@@ -150,7 +151,7 @@ function ControlApplet() {
               />
             </div>
           </div>
-        </div>
+        </LargeContainer>
       </div>
     </div >
   );

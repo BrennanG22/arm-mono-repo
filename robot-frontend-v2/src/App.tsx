@@ -1,5 +1,5 @@
 import { onCleanup, onMount, } from 'solid-js';
-import {  A, useLocation, } from '@solidjs/router';
+import {  A, useLocation, useNavigate, } from '@solidjs/router';
 
 import './App.css';
 import "./styles/ui.css";
@@ -8,6 +8,7 @@ import { startTelemetrySocket, stopTelemetrySocket } from './stores/telemetry/te
 
 const App = (props: any ) => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navButton = (path: string) =>
     `w-full text-left px-4 py-2 rounded-lg font-medium transition-colors
@@ -18,6 +19,9 @@ const App = (props: any ) => {
   onMount(() => {
     console.log("Starting telemetry socket...");
     startTelemetrySocket("ws://localhost:8765");
+    if (location.pathname === "/") {
+      navigate("/monitor", { replace: true });
+    }
   });
 
   onCleanup(() => {

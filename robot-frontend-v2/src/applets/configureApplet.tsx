@@ -8,7 +8,6 @@ function ConfigureApplet() {
             Configure Points
           </div>
 
-          {/* Selector row */}
           <div class="flex gap-3 items-center">
             <select class="flex-1 p-3 rounded-xl bg-slate-800/50 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors">
               <option value="option1" class="bg-slate-900 text-slate-100">Option 1</option>

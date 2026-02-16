@@ -17,7 +17,8 @@ def init():
     asm.arm_states["move_to_pickup"] = armStateMachine.ArmState(move_to_pickup.move_to_pickup_update,
                                                                 move_to_pickup.move_to_pickup_start)
     asm.arm_states["lift_up"] = armStateMachine.ArmState(lift_up.lift_up_update, lift_up.lift_up_start)
-    asm.arm_states["move_to_sort"] = armStateMachine.ArmState(move_to_sort.move_to_sort_update, move_to_sort.move_to_sort_start)
+    asm.arm_states["move_to_sort"] = armStateMachine.ArmState(move_to_sort.move_to_sort_update,
+                                                              move_to_sort.move_to_sort_start)
 
     return asm
 
@@ -45,6 +46,18 @@ class _MoveToPickup:
 
         if np.allclose(pos, target, atol=1e-3):
             self.machine.goto_state("lift_up")
+
+
+class _WaitForPickup:
+    def __init__(self, machine):
+        self.machine = machine
+        self.pather = get_arm_pather()
+
+    def wait_for_pickup_start(self):
+        pass
+
+    def wait_for_pickup_update(self):
+        pass
 
 
 class _LiftUp:
@@ -76,7 +89,6 @@ class _LiftUp:
 class _MoveToSort:
     sorting_point: tuple[float, float, float] = None
     pather: ArmPather
-
 
     def __init__(self, machine):
         self.machine = machine

@@ -44,6 +44,7 @@ class WebSocketServer:
         self._initial_connect_handler()
         try:
             async for message in websocket:
+                logger.debug("Received websocket message: " + str(message))
                 websocket_message_handler(message)
         except websockets.exceptions.ConnectionClosed:
             pass

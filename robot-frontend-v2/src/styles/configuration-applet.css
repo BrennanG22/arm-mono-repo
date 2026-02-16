@@ -1,122 +1,255 @@
-.configure-applet {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+/* ===== ConfigureApplet.css ===== */
+/* A structured CSS file for the Configure Points applet */
 
-  padding: 16px;
-  border-radius: 14px;
-
-  background: linear-gradient(180deg, #020617, #020617);
-  color: #e5e7eb;
-  font-size: 0.9rem;
+/* Container styles */
+.applet-container {
+  height: 100%;
+  padding: 1rem;
+  background-color: #f3f4f6;
+  border-radius: 1rem;
 }
 
-/* Section headers / labels */
-.configure-applet > div:first-child {
+/* Main card */
+.config-card {
+  background: linear-gradient(to bottom right, #0f172a, #020617, #0f172a);
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 1.5rem;
+  border: 1px solid rgba(30, 41, 59, 0.5);
+}
+
+/* Layout */
+.config-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Header */
+.config-header {
+  font-size: 1.125rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #94a3b8;
+  letter-spacing: 0.05em;
+  color: #f8fafc;
 }
 
-/* Row containers */
-.configure-applet > div {
+/* Selector row */
+.selector-row {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* Inline control rows */
-.configure-applet div > div {
-  display: flex;
-  gap: 8px;
+  gap: 0.75rem;
   align-items: center;
 }
 
-/* Inputs & selects */
-.configure-applet input,
-.configure-applet select,
-.configure-applet textarea {
-  background: linear-gradient(180deg, #0f172a, #020617);
-  border: 1px solid #1e293b;
-  border-radius: 6px;
-
-  color: #e5e7eb;
-  padding: 8px 10px;
-  font-size: 0.85rem;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.05),
-    0 1px 2px rgba(0,0,0,0.6);
-
-  transition:
-    border-color 0.12s ease,
-    box-shadow 0.12s ease,
-    background 0.12s ease;
+/* Form elements base styles */
+.form-select,
+.form-input,
+.form-textarea {
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background-color: rgba(30, 41, 59, 0.5);
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  transition: all 0.2s ease;
 }
 
-.configure-applet textarea {
-  resize: vertical;
-  min-height: 70px;
-}
-
-/* Focus state */
-.configure-applet input:focus,
-.configure-applet select:focus,
-.configure-applet textarea:focus {
+.form-select:focus,
+.form-input:focus,
+.form-textarea:focus {
   outline: none;
-  border-color: #38bdf8;
-  box-shadow:
-    0 0 0 2px rgba(56,189,248,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.05);
+  ring: 2px solid #0ea5e9;
+  border-color: #0ea5e9;
 }
 
-/* Add (+) button */
-.configure-applet button {
-  width: 36px;
-  height: 36px;
+.form-select {
+  flex: 1;
+}
 
-  background: linear-gradient(180deg, #0f172a, #020617);
-  border: 1px solid #1e293b;
-  border-radius: 6px;
+.form-select option {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
 
-  color: #e5e7eb;
-  font-size: 1.2rem;
-  font-weight: 600;
+.form-input::placeholder,
+.form-select::placeholder,
+.form-textarea::placeholder {
+  color: #64748b;
+}
 
+/* Fixed width select */
+.select-fixed {
+  composes: form-select;
+  min-width: 180px;
+}
+
+/* Add button */
+.add-button {
+  height: 2.75rem;
+  width: 2.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
-
+  border-radius: 0.75rem;
+  border: 1px solid #334155;
+  background: linear-gradient(to bottom, #1e293b, #0f172a);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  transition: all 75ms ease;
   cursor: pointer;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.05),
-    0 2px 4px rgba(0,0,0,0.6);
-
-  transition:
-    transform 0.08s ease,
-    box-shadow 0.08s ease,
-    background 0.15s ease;
 }
 
-.configure-applet button:hover {
-  background: linear-gradient(180deg, #1e293b, #020617);
+.add-button:hover {
+  background: linear-gradient(to bottom, #334155, #1e293b);
 }
 
-.configure-applet button:active {
+.add-button:active {
   transform: translateY(2px);
-  box-shadow:
-    inset 0 3px 6px rgba(0,0,0,0.6);
+  box-shadow: inset 0 4px 6px -1px rgba(0, 0, 0, 0.6);
 }
 
-/* Grouped coordinate inputs */
-.configure-applet input[type="number"] {
+.add-button:focus {
+  outline: none;
+  ring: 2px solid #38bdf8;
+  ring-offset: 2px;
+  ring-offset-color: #0f172a;
+}
+
+/* Point definition section */
+.point-definition {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.point-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Section dividers */
+.section-divider {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(51, 65, 85, 0.5);
+}
+
+.section-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #cbd5e1;
+  margin-bottom: 0.75rem;
+}
+
+.subsection-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+  margin-bottom: 0.25rem;
+}
+
+/* Coordinate inputs */
+.coordinate-group {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.coordinate-input {
+  composes: form-input;
+  flex: 1;
+}
+
+/* Sorting section */
+.sorting-config {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.instructions-textarea {
+  composes: form-textarea;
   width: 100%;
+  min-height: 100px;
+  resize: vertical;
 }
 
-/* Conveyor / Sorting blocks */
-.configure-applet > div > div + div {
-  padding-top: 8px;
-  border-top: 1px solid #1e293b;
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+/* Button group */
+.button-group {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(51, 65, 85, 0.5);
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Base button styles */
+.btn {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  transition: all 75ms ease;
+  cursor: pointer;
+  border: none;
+  font-size: 1rem;
+}
+
+.btn:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 4px 6px -1px rgba(0, 0, 0, 0.6);
+}
+
+.btn:focus {
+  outline: none;
+  ring: 2px solid;
+  ring-offset: 2px;
+}
+
+/* Save button */
+.btn-save {
+  background: linear-gradient(to bottom, #1e293b, #0f172a);
+  border: 1px solid #334155;
+  color: #e2e8f0;
+}
+
+.btn-save:hover {
+  background: linear-gradient(to bottom, #334155, #1e293b);
+}
+
+.btn-save:focus {
+  ring-color: #38bdf8;
+  ring-offset-color: #0f172a;
+}
+
+/* Clear button */
+.btn-clear {
+  background: linear-gradient(to bottom, rgba(127, 29, 29, 0.3), rgba(69, 10, 10, 0.3));
+  border: 1px solid rgba(153, 27, 27, 0.5);
+  color: #fecaca;
+}
+
+.btn-clear:hover {
+  background: linear-gradient(to bottom, rgba(153, 27, 27, 0.4), rgba(127, 29, 29, 0.4));
+}
+
+.btn-clear:focus {
+  ring-color: #f87171;
+  ring-offset-color: #0f172a;
+}
+
+/* Utility classes for focus rings */
+.ring-offset-slate-900 {
+  ring-offset-color: #0f172a;
+}
+
+.ring-sky-400 {
+  ring-color: #38bdf8;
+}
+
+.ring-red-400 {
+  ring-color: #f87171;
 }

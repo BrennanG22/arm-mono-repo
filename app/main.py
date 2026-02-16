@@ -115,7 +115,7 @@ def main():
 
         try:
             msg = INET_data_queue.get_nowait()
-            cls = msg["class"]
+            cls = msg["colour"]
             dataStores.arm_sorting_data.update(lambda d: setattr(d, "active_classification", cls))
         except queue.Empty:
             pass

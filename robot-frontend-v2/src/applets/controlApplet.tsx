@@ -2,7 +2,7 @@ import { createEffect, createSignal, on } from "solid-js";
 import ThreeTest from "../components/threeTest";
 import { sendTelemetryMessage } from "../stores/telemetry/telemetrySocket";
 import { telemetry } from "../stores/telemetryStore";
-import { Select } from "../components/ui/fields/Select";
+import { Select } from "../components/ui/elements/Select";
 import { LargeContainer } from "../components/ui/Containers";
 
 // Reusable MoveButton Component
@@ -146,7 +146,7 @@ function ControlApplet() {
                 onInput={(e) => {
                   const val = parseFloat(e.currentTarget.value);
                   setStepSize(val);
-                  sendTelemetryMessage("setStepSize", { stepSize: val });
+                  // sendTelemetryMessage("setStepSize", { stepSize: val });
                 }}
               />
             </div>

@@ -24,5 +24,13 @@ export const telemetryParsers: Record<string, TelemetryParser> = {
 
   activeMode(data) {
     setTelemetry("activeMode", data as string);
+  },
+
+  sortingPoints(data) {
+    setConfiguration("sortingPoints", data as Record<string, [number, number, number]>);
+  },
+
+  pickUpPoint(data) {
+    setConfiguration("pickupPoint", data as [number, number, number]);
   }
 };

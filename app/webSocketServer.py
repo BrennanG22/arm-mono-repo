@@ -4,8 +4,8 @@ import threading
 import websockets
 import json
 
-from armPather import get_arm_pather, ArmPather
-from dataStores import arm_telemetry, ActiveMode, arm_path_data
+from armPather import get_arm_pather
+from dataStores import arm_telemetry, ActiveMode, arm_path_data, arm_boundary_data
 
 logger = logging.getLogger()
 
@@ -45,7 +45,7 @@ class WebSocketServer:
         try:
             async for message in websocket:
                 logger.debug("Received websocket message: " + str(message))
-                websocket_message_handler(message)
+                self.websocket_message_handler(message)
         except websockets.exceptions.ConnectionClosed:
             pass
         finally:
@@ -86,39 +86,67 @@ class WebSocketServer:
         })
         self.send_to_all(json_str)
 
+        boundary = arm_boundary_data.get()
+        pick_up_point = boundary.conveyor_pickup_point
+        json_str = json.dumps({
+            "message": "pickUpPoint",
+            "data": [float(pick_up_point[0]), float(pick_up_point[1]), float(pick_up_point[2])]
+        })
+        self.send_to_all(json_str)
 
-def websocket_message_handler(socket_message):
-    parsed_message = json.loads(socket_message)
-    message = parsed_message["message"]
-    data = parsed_message["data"]
-    telemetry = arm_telemetry.get()
-    pather_data = arm_path_data.get()
-    pather = get_arm_pather()
+        sorting_points = boundary.sorting_points
+        json_str = json.dumps({
+            "message": "sortingPoints",
+            "data": {
+                key: [float(p[0]), float(p[1]), float(p[2])]
+                for key, p in sorting_points.items()
+            }
+        })
+        self.send_to_all(json_str)
 
-    if (message == "move") and (telemetry.active_mode == ActiveMode.MANUAL) and (pather_data is not None):
-        if data["direction"] == "x+":
-            updated_point = (telemetry.position[0] + data["step"], telemetry.position[1], telemetry.position[2])
-            pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
-        elif data["direction"] == "x-":
-            updated_point = (telemetry.position[0] - data["step"], telemetry.position[1], telemetry.position[2])
-            pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+    def websocket_message_handler(self, socket_message):
+        parsed_message = json.loads(socket_message)
+        message = parsed_message["message"]
+        data = parsed_message["data"]
+        telemetry = arm_telemetry.get()
+        pather_data = arm_path_data.get()
+        pather = get_arm_pather()
 
-        elif data["direction"] == "y+":
-            updated_point = (telemetry.position[0], telemetry.position[1] + data["step"], telemetry.position[2])
-            pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
-        elif data["direction"] == "y-":
-            updated_point = (telemetry.position[0], telemetry.position[1] - data["step"], telemetry.position[2])
-            pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+        if (message == "move") and (telemetry.active_mode == ActiveMode.MANUAL) and (pather_data is not None):
+            if data["direction"] == "x+":
+                updated_point = (telemetry.position[0] + data["step"], telemetry.position[1], telemetry.position[2])
+                pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+            elif data["direction"] == "x-":
+                updated_point = (telemetry.position[0] - data["step"], telemetry.position[1], telemetry.position[2])
+                pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
 
-        elif data["direction"] == "z+":
-            updated_point = (telemetry.position[0], telemetry.position[1], telemetry.position[2] + data["step"])
-            pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
-        elif data["direction"] == "z-":
-            updated_point = (telemetry.position[0], telemetry.position[1], telemetry.position[2] - data["step"])
-            pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+            elif data["direction"] == "y+":
+                updated_point = (telemetry.position[0], telemetry.position[1] + data["step"], telemetry.position[2])
+                pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+            elif data["direction"] == "y-":
+                updated_point = (telemetry.position[0], telemetry.position[1] - data["step"], telemetry.position[2])
+                pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
 
-    if message == "setControlMode":
-        if data["mode"] == "manual":
-            arm_telemetry.update(lambda d: setattr(d, "active_mode", ActiveMode.MANUAL))
-        else:
-            arm_telemetry.update(lambda d: setattr(d, "active_mode", ActiveMode.SORTING))
+            elif data["direction"] == "z+":
+                updated_point = (telemetry.position[0], telemetry.position[1], telemetry.position[2] + data["step"])
+                pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+            elif data["direction"] == "z-":
+                updated_point = (telemetry.position[0], telemetry.position[1], telemetry.position[2] - data["step"])
+                pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+
+        if message == "setControlMode":
+            if data["mode"] == "manual":
+                arm_telemetry.update(lambda d: setattr(d, "active_mode", ActiveMode.MANUAL))
+            else:
+                arm_telemetry.update(lambda d: setattr(d, "active_mode", ActiveMode.SORTING))
+
+        if message == "setPickUpPoint":
+            # TODO Update this to save to the YAML file
+            arm_boundary_data.update(lambda d: setattr(d, "conveyor_pickup_point", data["point"]))
+            boundary = arm_boundary_data.get()
+            pick_up_point = boundary.conveyor_pickup_point
+            json_str = json.dumps({
+                "message": "pickUpPoint",
+                "data": [float(pick_up_point[0]), float(pick_up_point[1]), float(pick_up_point[2])]
+            })
+            self.send_to_all(json_str)

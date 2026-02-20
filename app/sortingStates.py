@@ -4,6 +4,7 @@ import numpy as np
 
 import armStateMachine
 from armPather import get_arm_pather, ArmPather
+from sortingObjectQueue import sorting_queue
 import dataStores
 
 
@@ -11,11 +12,14 @@ def init():
     asm = armStateMachine.ArmStateMachine()
 
     move_to_pickup = _MoveToPickup(asm)
+    wait_for_pickup = _WaitForPickup(asm)
     lift_up = _LiftUp(asm)
     move_to_sort = _MoveToSort(asm)
 
     asm.arm_states["move_to_pickup"] = armStateMachine.ArmState(move_to_pickup.move_to_pickup_update,
                                                                 move_to_pickup.move_to_pickup_start)
+    asm.arm_states["wait_for_pickup"] = armStateMachine.ArmState(wait_for_pickup.wait_for_pickup_update,
+                                                                 wait_for_pickup.wait_for_pickup_start)
     asm.arm_states["lift_up"] = armStateMachine.ArmState(lift_up.lift_up_update, lift_up.lift_up_start)
     asm.arm_states["move_to_sort"] = armStateMachine.ArmState(move_to_sort.move_to_sort_update,
                                                               move_to_sort.move_to_sort_start)
@@ -45,7 +49,7 @@ class _MoveToPickup:
         target = np.array(self.pick_up_point, dtype=float)
 
         if np.allclose(pos, target, atol=1e-3):
-            self.machine.goto_state("lift_up")
+            self.machine.goto_state("wait_for_pickup")
 
 
 class _WaitForPickup:
@@ -57,7 +61,11 @@ class _WaitForPickup:
         pass
 
     def wait_for_pickup_update(self):
-        pass
+        data = sorting_queue.pop_if_ready()
+        if data:
+            # Close claw
+            dataStores.arm_sorting_data.update(lambda d: setattr(d, "active_classification", data.colour))
+            self.machine.goto_state("lift_up")
 
 
 class _LiftUp:

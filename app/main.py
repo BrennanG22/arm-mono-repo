@@ -14,6 +14,7 @@ import webServer
 import webSocketServer
 from dataStores import arm_telemetry, ActiveMode, parser_arg_data
 from armPather import init_arm_pather
+from sortingObjectQueue import sorting_queue
 
 INET_data_queue = queue.Queue()
 webSocket_points_data_queue = queue.Queue()
@@ -49,7 +50,7 @@ def main():
     logger = logging.getLogger()
 
     web_socket_previous_point = [0, 0, 0]
-    prev_path = []
+    prev_path = None
     prev_state = None
 
     logger.info("Starting main")
@@ -117,6 +118,7 @@ def main():
             msg = INET_data_queue.get_nowait()
             cls = msg["colour"]
             dataStores.arm_sorting_data.update(lambda d: setattr(d, "active_classification", cls))
+            sorting_queue.update_from_message(msg)
         except queue.Empty:
             pass
 

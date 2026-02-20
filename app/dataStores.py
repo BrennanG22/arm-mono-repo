@@ -13,11 +13,18 @@ class ActiveMode(Enum):
 
 
 @dataclass
+class SortingPoint:
+    point: [float, float, float]
+    categories: List[str]
+
+
+@dataclass
 class _ArmTelemetryData:
     servo_current: List[float] = field(default_factory=list)
     position: Tuple[float, float, float] = (1.0, 1.0, 1.0)
     requested_position: Optional[Tuple[float, float, float]] = None
     active_mode: ActiveMode = ActiveMode.MANUAL
+
 
 @dataclass
 class _ParserArguments:

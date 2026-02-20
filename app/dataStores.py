@@ -14,8 +14,11 @@ class ActiveMode(Enum):
 
 @dataclass
 class SortingPoint:
-    point: [float, float, float]
-    categories: List[str]
+    point: [float, float, float] = None
+    categories: List[str] = None
+
+    def list_points(self) -> str:
+        return f"Point: X:{self.point[0]} Y:{self.point[1]} Z:{self.point[2]}, Categories: {self.categories}"
 
 
 @dataclass
@@ -47,7 +50,7 @@ class _SortingData:
 
 @dataclass
 class _BoundaryData:
-    sorting_points: Dict[str, Tuple[float, float, float]] = field(default_factory=dict)
+    sorting_points: Dict[str, SortingPoint] = field(default_factory=dict)
     conveyor_pickup_point: Tuple[float, float, float] = (1, 1, 1)
 
 

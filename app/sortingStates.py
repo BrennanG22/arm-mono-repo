@@ -1,3 +1,4 @@
+import logging
 from typing import Tuple
 
 import numpy as np
@@ -106,14 +107,16 @@ class _MoveToSort:
         current_sorting_data = dataStores.arm_sorting_data.get()
         current_boundary_data = dataStores.arm_boundary_data.get()
         classification = current_sorting_data.active_classification
-        boundaries = current_boundary_data.sorting_points
+        points = current_boundary_data.sorting_points
 
-        if classification in boundaries and classification is not None:
-            self.sorting_point = boundaries[classification]
-            path = self.pather.get_route_to_point(self.sorting_point)
-            self.pather.execute_path(path)
-        else:
-            self.machine.goto_state("move_to_pickup")
+        for name, sp in points.items():
+            if classification in sp.categories:
+                logging.getLogger().debug("Sorting to point: " + name)
+                self.sorting_point = sp.point
+                path = self.pather.get_route_to_point(self.sorting_point)
+                self.pather.execute_path(path)
+                return
+        self.machine.goto_state("move_to_pickup")
 
     def move_to_sort_update(self):
         current_data = dataStores.arm_telemetry.get()

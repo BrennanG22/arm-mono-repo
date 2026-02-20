@@ -41,6 +41,7 @@ class YAMLLoader:
 def map_points_file(data, update_data_store=False) -> List[WayPoint]:
     points: List[WayPoint] = []
     p: WayPoint = WayPoint
+    sp: dataStores.SortingPoint = dataStores.SortingPoint()
 
     d = data["pickUpPoint"]
     p.point = (d["x"], d["y"], d["z"])
@@ -50,9 +51,13 @@ def map_points_file(data, update_data_store=False) -> List[WayPoint]:
 
     d = data["sortingPoints"]
     for i in d:
-        p.name = i["name"]
-        p.point = (i["x"], i["y"], i["z"])
-        points.append(p)
+        sp = dataStores.SortingPoint()
+        name = i["name"]
+        sp.point = (i["points"]["x"], i["points"]["y"], i["points"]["z"])
+        sp.categories = i["categories"]
+        points.append(sp.point)
         if update_data_store:
-            dataStores.arm_boundary_data.update(lambda store: store.sorting_points.__setitem__(p.name, p.point))
+            dataStores.arm_boundary_data.update(lambda store: store.sorting_points.__setitem__(name, sp))
+
+    logging.getLogger().debug("Loaded the following points: " + str(points))
     return points

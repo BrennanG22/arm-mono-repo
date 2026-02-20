@@ -5,12 +5,17 @@ import time
 
 HOST = "localhost"  # Server IP
 PORT = 9999  # Server port
-DELAY_READY = 3  # seconds before sending "Ready"
+DELAY_READY = 1  # seconds before sending "Ready"
+
+# Lists of possible colours and shapes
+COLOURS = ["blue", "orange"]
+SHAPES = ["circle", "square", "triangle", "rectangle", "oval", "star", "heart", "diamond", "pentagon", "hexagon"]
 
 
 def make_random_point(index):
-    colour = "orange"
-    shape = "triangle"
+    # Randomly select a colour and shape from the lists
+    colour = random.choice(COLOURS)
+    shape = random.choice(SHAPES)
     return {
         "index": index,
         "colour": colour,

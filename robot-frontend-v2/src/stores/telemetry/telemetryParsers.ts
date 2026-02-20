@@ -17,17 +17,20 @@ export const telemetryParsers: Record<string, TelemetryParser> = {
     setTelemetry("activeState", data as string);
   },
 
-  configuration(data) {
-    const jsonData = JSON.parse(data as string);
-    setConfiguration("sortingPoints", jsonData.sortingPoints as Record<string, [number, number, number]>);
-  },
-
   activeMode(data) {
     setTelemetry("activeMode", data as string);
   },
 
   sortingPoints(data) {
-    setConfiguration("sortingPoints", data as Record<string, [number, number, number]>);
+    const pointsData = data as Record<string, { point: [number, number, number], categories: string[] }>;
+
+    // Transform to the expected format if needed
+    const transformedData: Record<string, [number, number, number]> = {};
+    for (const [key, value] of Object.entries(pointsData)) {
+      transformedData[key] = value.point;
+    }
+
+    setConfiguration("sortingPoints", pointsData);
   },
 
   pickUpPoint(data) {

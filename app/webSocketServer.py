@@ -1,11 +1,13 @@
 import asyncio
 import logging
 import threading
+from typing import Dict
+
 import websockets
 import json
 
 from armPather import get_arm_pather
-from dataStores import arm_telemetry, ActiveMode, arm_path_data, arm_boundary_data
+from dataStores import arm_telemetry, ActiveMode, arm_path_data, arm_boundary_data, SortingPoint
 
 logger = logging.getLogger()
 
@@ -98,7 +100,10 @@ class WebSocketServer:
         json_str = json.dumps({
             "message": "sortingPoints",
             "data": {
-                key: [float(p[0]), float(p[1]), float(p[2])]
+                key: {
+                    "point": [float(p.point[0]), float(p.point[1]), float(p.point[2])],
+                    "categories": p.categories
+                }
                 for key, p in sorting_points.items()
             }
         })
@@ -149,4 +154,25 @@ class WebSocketServer:
                 "message": "pickUpPoint",
                 "data": [float(pick_up_point[0]), float(pick_up_point[1]), float(pick_up_point[2])]
             })
+            self.send_to_all(json_str)
+
+        if message == "setSortingPoints":
+            data: dict = data
+            new_points: Dict[str, SortingPoint] = {}
+            for key, p in data.items():
+                sp: SortingPoint = SortingPoint(point=p["point"], categories=p["categories"])
+                new_points[key] = sp
+            arm_boundary_data.update(lambda d: setattr(d, "sorting_points", new_points))
+            sorting_points = arm_boundary_data.get().sorting_points
+            json_str = json.dumps({
+                "message": "sortingPoints",
+                "data": {
+                    key: {
+                        "point": [float(p.point[0]), float(p.point[1]), float(p.point[2])],
+                        "categories": p.categories
+                    }
+                    for key, p in sorting_points.items()
+                }
+            })
+            logger.debug("Setting sorting points as: " + json_str)
             self.send_to_all(json_str)

@@ -33,7 +33,7 @@ export function SingleLineText(props: JSX.InputHTMLAttributes<HTMLInputElement>)
 
 export function Input(props: JSX.InputHTMLAttributes<HTMLInputElement> & { label?: string, containerClass?: string }) {
 
-  const [local, others] = splitProps(props, ["children", "class", "label", "containerClass"]);
+  const [local, others] = splitProps(props, ["children", "class", "label", "containerClass", "value"]);
 
   const c = children(() => local.children);
 
@@ -60,6 +60,7 @@ export function Input(props: JSX.InputHTMLAttributes<HTMLInputElement> & { label
         focus:border-sky-500 
         transition-colors  
         ${local.class ?? ""}`}
+        value={local.value ?? ""}
         {...others}
       >
         {c()}

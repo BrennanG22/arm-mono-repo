@@ -1,4 +1,4 @@
-import { createEffect, createSignal, Match, onMount, Switch } from "solid-js";
+import { createEffect, createSignal, Match, Switch } from "solid-js";
 import { LargeContainer } from "../components/ui/Containers";
 import { Select } from "../components/ui/elements/Select";
 import { Input } from "../components/ui/elements/Input";
@@ -21,16 +21,16 @@ function ConfigureApplet() {
 
   createEffect(() => {
     if (pointType() === "sorting") {
-      setSortingPoints(configuration.sortingPoints);
+      resetView();
     }
   });
 
-  createEffect(() => {
-    if (pointType() === "sorting") {
-      setTempSortingPoint(sortingPoints()[selectedSortingPoint()] || { point: [0, 0, 0], categories: [] });
-      setTempSortingPointName(selectedSortingPoint());
-    }
-  });
+  function resetView() {
+    setSortingPoints(configuration.sortingPoints);
+    setTempSortingPoint(sortingPoints()[selectedSortingPoint()] || { point: [0, 0, 0], categories: [] });
+    setTempSortingPointName(selectedSortingPoint());
+  }
+
 
   function validateName(e: InputEvent & {
     currentTarget: HTMLInputElement;
@@ -90,7 +90,21 @@ function ConfigureApplet() {
     sendTelemetryMessage("setSortingPoints", configuration.sortingPoints);
   }
 
+  function addNewSortingPoint() {
+    setTempSortingPoint({ point: [0, 0, 0], categories: [] });
+    setTempSortingPointName("Untitled Point");
+    setSelectedSortingPoint("Untitled Point");
+  }
 
+  function deleteSortingPoint() {
+    setConfiguration(
+      "sortingPoints",
+      produce(points => {
+        delete points[selectedSortingPoint()];
+      })
+    );
+    sendTelemetryMessage("setSortingPoints", configuration.sortingPoints);
+  }
 
 
   const [pickUpButtonsActive, setPickUpButtonsActive] = createSignal(false);
@@ -161,10 +175,10 @@ function ConfigureApplet() {
                     options={Object.keys(sortingPoints()).map(key => ({ value: key, label: key }))}
                   />
                 </div>
-                <ButtonRed class="aspect-square">
+                <ButtonRed class="aspect-square" onclick={() => deleteSortingPoint()}>
                   -
                 </ButtonRed>
-                <Button class="aspect-square">
+                <Button class="aspect-square" onClick={() => addNewSortingPoint()}>
                   +
                 </Button>
               </div>

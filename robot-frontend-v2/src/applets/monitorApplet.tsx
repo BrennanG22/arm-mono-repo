@@ -3,6 +3,7 @@ import ThreeTest from "../components/threeTest";
 import { appState } from "../stores/appStateStore";
 import { telemetry } from "../stores/telemetryStore";
 import { LargeContainer, MetricContainer } from "../components/ui/Containers";
+import PropChart from "../components/propChart";
 
 function MonitorApplet() {
   return (
@@ -29,7 +30,7 @@ function MonitorApplet() {
               </div>
             </MetricContainer>
 
-            <MetricContainer metricName="Current Position" class="col-span-2"> 
+            <MetricContainer metricName="Current Position" class="col-span-2">
               <div class="grid grid-cols-3 gap-2">
                 <div class="text-base font-semibold text-slate-50">
                   X: {telemetry.currentPoint ? telemetry.currentPoint[0].toFixed(2) : "N/A"}
@@ -53,12 +54,19 @@ function MonitorApplet() {
         </div>
 
         {/* Telemetry Chart Section */}
-        <div>
-          <div class="text-lg font-semibold tracking-wider text-slate-50 mb-3">
-            Current Sensing
-          </div>
-          <TelemetryChart telemetry={telemetry} />
+        <div class="text-lg font-semibold tracking-wider text-slate-50 mb-3">
+          Current Sensing
         </div>
+        <MetricContainer metricName="Current (A)" class="col-span-3">
+          <div class="grid grid-cols-3 grid-rows-2 space-x-0.5 space-y-0.5">
+            {/* <PropChart value={0} min={0} max={10} />
+            <TelemetryChart telemetry={telemetry} />
+            <TelemetryChart telemetry={telemetry} />
+            <TelemetryChart telemetry={telemetry} />
+            <TelemetryChart telemetry={telemetry} />
+            <TelemetryChart telemetry={telemetry} /> */}
+          </div>
+        </MetricContainer>
 
         {/* Error Codes Section */}
         <div>

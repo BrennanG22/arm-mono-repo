@@ -55,7 +55,6 @@ export default function TelemetryChart(props: TelemetryChartProps) {
     });
   });
 
-  // Update chart whenever telemetry.points changes
   createEffect(() => {
     if (!chart) return;
 
@@ -63,10 +62,10 @@ export default function TelemetryChart(props: TelemetryChartProps) {
     chart.data.datasets![0].data = props.telemetry.points.map((p) => p[0]);
     chart.data.datasets![1].data = props.telemetry.points.map((p) => p[1]);
     chart.data.datasets![2].data = props.telemetry.points.map((p) => p[2]);
-    chart.update("none"); // "none" skips animation for real-time feel
+    chart.update("none");
   });
 
   onCleanup(() => chart?.destroy());
 
-  return <canvas ref={canvasRef} />;
+  return <canvas class="h-full w-full" ref={canvasRef} />;
 }

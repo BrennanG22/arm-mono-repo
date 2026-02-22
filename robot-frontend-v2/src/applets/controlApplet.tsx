@@ -4,8 +4,8 @@ import { sendTelemetryMessage } from "../stores/telemetry/telemetrySocket";
 import { telemetry } from "../stores/telemetryStore";
 import { Select } from "../components/ui/elements/Select";
 import { LargeContainer } from "../components/ui/Containers";
+import { Button } from "../components/ui/elements/Button";
 
-// Reusable MoveButton Component
 function MoveButton(props: {
   direction: string;
   label: string;
@@ -13,20 +13,21 @@ function MoveButton(props: {
   position: { col: number; row: number };
 }) {
   return (
-    <button
-      class={`col-start-${props.position.col} row-start-${props.position.row} 
-      bg-linear-to-b from-slate-800 to-slate-900 border 
-      border-slate-700 rounded-lg text-slate-200 font-semibold 
-      tracking-widest flex items-center justify-center shadow-lg 
-      shadow-black/40 hover:bg-linear-to-b hover:from-slate-700 hover:to-slate-800 
-      active:translate-y-0.5 active:shadow-inner active:shadow-black/60 
-      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 
-      focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 transition-all duration-75`}
-      onClick={() => sendTelemetryMessage("move", { direction: props.direction, step: props.stepSize })}
-      aria-label={`Move ${props.direction}`}
+    <Button
+      style={{
+        "grid-column-start": props.position.col,
+        "grid-row-start": props.position.row,
+      }}
+      class="aspect-square"
+      onClick={() =>
+        sendTelemetryMessage("move", {
+          direction: props.direction,
+          step: props.stepSize,
+        })
+      }
     >
       {props.label}
-    </button>
+    </Button>
   );
 }
 
@@ -64,7 +65,7 @@ function ControlApplet() {
 
       <div class="col-span-2 h-full w-full grid grid-cols-2 gap-6 overflow-hidden">
         <div class="flex items-center justify-center">
-          <div class="grid grid-cols-5 grid-rows-4 gap-2 w-full max-w-105 aspect-square">
+          <div class="grid grid-cols-5 grid-rows-4 gap-2 w-full max-w-105 aspect-square p-4">
             <MoveButton
               direction="x+"
               label="x+"
@@ -104,13 +105,13 @@ function ControlApplet() {
               direction="z-"
               label="z-"
               stepSize={stepSize()}
-              position={{ col: 5, row: 3 }}
+              position={{ col: 5, row: 2 }}
             />
           </div>
         </div>
 
         {/* Control Settings */}
-        <LargeContainer> 
+        <LargeContainer>
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-slate-300 mb-2">

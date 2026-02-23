@@ -12,6 +12,7 @@ import socketServer
 import sortingStates
 import webServer
 import webSocketServer
+import webSocketLogHandler
 from dataStores import arm_telemetry, ActiveMode, parser_arg_data
 from armPather import init_arm_pather
 from sortingObjectQueue import sorting_queue
@@ -46,7 +47,10 @@ def main():
 
     parser_arg_data.update(lambda d: setattr(d, "use_ik", args.d))
 
-    init_logger()
+    ws_server = webSocketServer.WebSocketServer(host="localhost")
+    ws_server.start()
+
+    init_logger(ws_server)
     logger = logging.getLogger()
 
     web_socket_previous_point = [0, 0, 0]
@@ -67,8 +71,7 @@ def main():
     webServer.start_api_thread()
 
     logger.debug("Starting websocket server")
-    ws_server = webSocketServer.WebSocketServer(host="localhost")
-    ws_server.start()
+
 
     init_arm_pather()
 
@@ -147,7 +150,7 @@ def start_socket_server():
                                      lambda msg: INET_data_queue.put(msg))
 
 
-def init_logger():
+def init_logger(ws_server: webSocketServer):
     if os.path.exists(LOG_FILE):
         os.remove(LOG_FILE)
     logger = logging.getLogger()
@@ -167,9 +170,15 @@ def init_logger():
     file.setLevel(logging.DEBUG)
     file.setFormatter(formatter)
 
+    # Web socket handler
+    ws_handler = webSocketLogHandler.WebSocketHandler(ws_server.send_to_all)
+    ws_handler.setLevel(logging.DEBUG)
+    ws_handler.setFormatter(formatter)
+
     logger.handlers.clear()
     logger.addHandler(console)
     logger.addHandler(file)
+    logger.addHandler(ws_handler)
 
     logging.getLogger("websockets").setLevel(logging.WARNING)
 

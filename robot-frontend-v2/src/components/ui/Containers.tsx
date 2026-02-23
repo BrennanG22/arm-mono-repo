@@ -11,7 +11,7 @@ export function LargeContainer(props: {
 
   return (
     <div
-      class={`w-full h-full p-3 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 rounded-2xl shadow-2xl border border-slate-800/50 ${local.class ?? ""}`}
+      class={`p-3 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 rounded-2xl shadow-2xl border border-slate-800/50 ${local.class ?? ""}`}
       {...others}
     >
       {c()}

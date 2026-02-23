@@ -1,5 +1,6 @@
 import { setTelemetry } from "../telemetryStore";
 import { setConfiguration } from "../configurationStore";
+import { addLog } from "../logStore";
 
 
 export type TelemetryParser = (data: unknown) => void;
@@ -35,5 +36,9 @@ export const telemetryParsers: Record<string, TelemetryParser> = {
 
   pickUpPoint(data) {
     setConfiguration("pickupPoint", data as [number, number, number]);
+  },
+
+  logUpdate(data: any) {
+    addLog(data["message"] as string, data["level"]);
   }
 };

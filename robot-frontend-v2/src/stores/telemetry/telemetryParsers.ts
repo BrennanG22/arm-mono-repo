@@ -38,7 +38,7 @@ export const telemetryParsers: Record<string, TelemetryParser> = {
   },
 
   logUpdate(data: any) {
-    addLog(data["message"] as string, data["level"]);
+    addLog(data["message"] as string, data["levelName"] as string, data["level"] as number);
   },
 
   currentUpdate(data) {

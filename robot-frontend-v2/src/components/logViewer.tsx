@@ -1,7 +1,11 @@
-import { For, createEffect } from "solid-js";
+import { For, Show, createEffect, type Accessor } from "solid-js";
 import { logs } from "../stores/logStore";
 
-export default function LogViewer() {
+interface LogViewerProps {
+  logLevel: Accessor<number>;
+}
+
+export default function LogViewer(props: LogViewerProps) {
 
   let container!: HTMLDivElement;
 
@@ -17,13 +21,30 @@ export default function LogViewer() {
     >
       <For each={logs}>
         {(log) => (
-          < div class="text-green-400">
-            {log.message}
-          </div>
+          <Show when={log.levelNumber >= props.logLevel()}>
+            < div class={getColourClass(log.levelName)}>
+              {log.message}
+            </div>
+          </Show>
         )
         }
       </For >
       {logs.length}
     </div >
   );
+}
+
+function getColourClass(level: string) {
+  switch (level) {
+    case "ERROR":
+      return "text-red-400";
+    case "WARNING":
+      return "text-yellow-400";
+    case "INFO":
+      return "text-green-400";
+    case "DEBUG":
+      return "text-blue-400";
+    default:
+      return "text-gray-400";
+  }
 }

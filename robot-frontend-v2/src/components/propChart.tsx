@@ -9,28 +9,6 @@ export default function TelemetryCurrentChart() {
   let canvas!: HTMLCanvasElement;
   let chart: Chart;
 
-  const MAX_POINTS = 10;
-
-  const history: number[][] = [
-    [], [], [], [], [], []
-  ];
-
-  function addData(currents: number[]) {
-    for (let i = 0; i < 6; i++) {
-      history[i].push(currents[i] ?? 0);
-      if (history[i].length > MAX_POINTS)
-        history[i].shift();
-
-    }
-
-    chart.data.labels = history[0].map((_, i) => i.toString());
-
-    chart.data.datasets.forEach((dataset, i) => {
-      dataset.data = history[i];
-    });
-
-    chart.update("none");
-  }
 
   onMount(() => {
 
@@ -117,16 +95,39 @@ export default function TelemetryCurrentChart() {
   });
 
   createEffect(() => {
-    telemetry.currentMagnitudes?.currentUpdateId;
 
-    const currents = telemetry.currentMagnitudes?.currents;
+  telemetry.currentMagnitudes?.currentUpdateId;
 
-    if (!currents || currents.length !== 6)
-      return;
+  const history = telemetry.currentMagnitudes?.currentHistory ?? [];
 
-    addData(currents);
+  if (!chart) return;
+
+  const MAX = 10;
+
+  chart.data.labels = Array.from({ length: MAX }, (_, i) => i.toString());
+
+  chart.data.datasets.forEach((dataset, servoIndex) => {
+
+    let data = history.map(point => point[servoIndex] ?? null);
+
+    if (data.length < MAX) {
+      data = [
+        ...Array(MAX - data.length).fill(null),
+        ...data
+      ];
+    }
+
+    if (data.length > MAX) {
+      data = data.slice(-MAX);
+    }
+
+    dataset.data = data;
 
   });
+
+  chart.update("none");
+
+});
 
   onCleanup(() => {
     chart.destroy();

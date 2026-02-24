@@ -2,18 +2,19 @@ import { createStore } from "solid-js/store";
 
 export interface LogEntry {
   message: string;
-  level?: string; 
+  levelName: string;
+  levelNumber: number
 }
 
 const MAX_LOGS = 500;
 
 export const [logs, setLogs] = createStore<LogEntry[]>([]);
 
-export function addLog(message: string, level: LogEntry["level"] = "info") {
+export function addLog(message: string, levelName: string, levelNumber: number) {
   setLogs(prev => {
     const next = [
       ...prev,
-      { message, level}
+      { message, levelName, levelNumber }
     ];
 
     return next.slice(-MAX_LOGS);

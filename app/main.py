@@ -158,7 +158,7 @@ def send_test_current(ws_server):
         send_test_current.start = now
         return
     delta = now - send_test_current.start
-    if delta >= 1.0:
+    if delta >= 0.2:
         send_test_current.start = now
         ws_server.send_to_all(json.dumps({
             "message": "currentUpdate",

@@ -1,18 +1,19 @@
-import { createSignal, onCleanup, type Accessor } from "solid-js";
+import { createSignal, onCleanup, type Accessor, Show } from "solid-js";
 
-export type SelectOption<T extends string> = {
+export type SelectOption<T> = {
   value: T;
   label: string;
 };
 
-type SelectProps<T extends string> = {
-  value: Accessor<T>;
+type SelectProps<T> = {
+  value: Accessor<T | undefined | null>;
   onChange: (value: T) => void;
   options: readonly SelectOption<T>[];
   disabled?: boolean;
+  placeholder?: string;
 };
 
-export function Select<T extends string>(props: SelectProps<T>) {
+export function Select<T>(props: SelectProps<T>) {
   const [open, setOpen] = createSignal(false);
 
   const handleClickOutside = (e: MouseEvent) => {
@@ -42,11 +43,20 @@ export function Select<T extends string>(props: SelectProps<T>) {
         `}
         onClick={() => !props.disabled && setOpen(v => !v)}
       >
-        <span>{selected()?.label}</span>
+        <span
+          class={
+            selected()
+              ? ""
+              : "text-slate-400 italic"
+          }
+        >
+          {selected()?.label ?? props.placeholder ?? "Select..."}
+        </span>
+
         <span class="text-slate-400 text-sm">▾</span>
       </button>
 
-      {open() && (
+      <Show when={open()}>
         <div
           class="
             absolute z-50 mt-2 w-full rounded-xl
@@ -57,7 +67,7 @@ export function Select<T extends string>(props: SelectProps<T>) {
             <div
               class={`
                 px-4 py-2 cursor-pointer
-                text-slate-100 hover:bg-slate-800
+                text-slate-100 hover:bg-slate-800 rounded-xl
                 ${option.value === props.value() ? "bg-slate-800" : ""}
               `}
               onClick={() => {
@@ -69,7 +79,7 @@ export function Select<T extends string>(props: SelectProps<T>) {
             </div>
           ))}
         </div>
-      )}
+      </Show>
     </div>
   );
 }

@@ -10,9 +10,10 @@ class WebSocketHandler(logging.Handler):
     def emit(self, record):
         try:
             log_entry = {
-                "level": record.levelname,
+                "levelName": record.levelname,
                 "message": self.format(record),
-                "messageRaw": record.message
+                "messageRaw": record.message,
+                "level": record.levelno
             }
             json_str = {
                 "message": "logUpdate",

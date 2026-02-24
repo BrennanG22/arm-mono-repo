@@ -37,12 +37,12 @@ class WebSocketServer:
     async def _main(self):
         async with websockets.serve(self._handler, self.host, self.port):
             self.running = True
-            logger.debug(f"WebSocket server started on ws://{self.host}:{self.port}")
+            logger.info(f"WebSocket server started on ws://{self.host}:{self.port}")
             await asyncio.Future()
 
     async def _handler(self, websocket):
         self.clients.add(websocket)
-        logger.debug("Websocket client connected")
+        logger.info("Websocket client connected")
         self._initial_connect_handler()
         try:
             async for message in websocket:

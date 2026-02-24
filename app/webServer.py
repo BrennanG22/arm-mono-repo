@@ -7,6 +7,9 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+host = "127.0.0.1"
+port = 8000
+
 app = FastAPI()
 
 DIST_DIR = Path("robot-frontend-v2/dist")
@@ -28,10 +31,10 @@ async def serve_spa():
 
 
 def run_api():
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
+    uvicorn.run(app, host=host, port=8000, log_level="warning")
 
 
 def start_api_thread():
     thread = threading.Thread(target=run_api, daemon=True)
     thread.start()
-    logging.getLogger().debug("Web server started on 127.0.0.1:8000")
+    logging.getLogger().info(f"Web server started on {host}:{port}")

@@ -1,8 +1,12 @@
+import logging
 import time
 from typing import List, Tuple
 
+import helpers
 from dataStores import arm_telemetry, parser_arg_data
 from cartesian_to_joints import ArmController
+
+logger = logging.getLogger()
 
 Point = Tuple[float, float, float]
 
@@ -22,6 +26,7 @@ class ArmControllerA:
 
     def move_to_point(self, point: [float, float, float]):
         arm_telemetry.update(lambda d: setattr(d, "requested_position", point))
+        logger.debug(f"Moving to the requested position: {helpers.log_point(point)}")
         if self.is_active:
             self.armController.move_to_position(point[0], point[1], point[2])
             self.armController.gripper(0)
@@ -31,5 +36,6 @@ class ArmControllerA:
 
     def on_move_complete(self, point: [float, float, float]):
         arm_telemetry.update(lambda d: setattr(d, "requested_position", None))
+        logger.debug(f"Move to {helpers.log_point(point)} complete")
         if point is not None:
             arm_telemetry.update(lambda d: setattr(d, "position", point))

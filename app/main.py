@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import queue
+import random
 import threading
 import time
 
@@ -20,12 +21,13 @@ from sortingObjectQueue import sorting_queue
 INET_data_queue = queue.Queue()
 webSocket_points_data_queue = queue.Queue()
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 LOG_FILE = os.path.join(BASE_DIR, "../logs/app.log")
 
 DEFAULT_CONFIG_PATH = "/etc/armController/waypoint_config.yaml"
+
+start = time.monotonic()
 
 
 def main():
@@ -72,7 +74,6 @@ def main():
 
     logger.debug("Starting websocket server")
 
-
     init_arm_pather()
 
     # Start new state machine
@@ -85,6 +86,7 @@ def main():
 
     while True:
         time.sleep(0.001)
+        send_test_current(ws_server)
         # TEMP FIX: Remedy issue of transition from manual to sorting
         if mode == ActiveMode.SORTING and arm_telemetry.get().active_mode == ActiveMode.MANUAL:
             sorting_state_machine.current_state = None
@@ -148,6 +150,27 @@ def main():
 def start_socket_server():
     socketServer.listen_for_messages(socketServer.create_server(),
                                      lambda msg: INET_data_queue.put(msg))
+
+
+def send_test_current(ws_server):
+    now = time.monotonic()
+    if not hasattr(send_test_current, "start"):
+        send_test_current.start = now
+        return
+    delta = now - send_test_current.start
+    if delta >= 1.0:
+        send_test_current.start = now
+        ws_server.send_to_all(json.dumps({
+            "message": "currentUpdate",
+            "data": [
+                random.uniform(0, 2),
+                random.uniform(0, 2),
+                random.uniform(0, 2),
+                random.uniform(0, 2),
+                random.uniform(0, 2),
+                random.uniform(0, 2),
+            ]
+        }))
 
 
 def init_logger(ws_server: webSocketServer):

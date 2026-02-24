@@ -11,7 +11,8 @@ class WebSocketHandler(logging.Handler):
         try:
             log_entry = {
                 "level": record.levelname,
-                "message": self.format(record)
+                "message": self.format(record),
+                "messageRaw": record.message
             }
             json_str = {
                 "message": "logUpdate",

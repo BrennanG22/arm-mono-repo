@@ -1,83 +1,139 @@
 import { onMount, onCleanup, createEffect } from "solid-js";
+import { telemetry } from "../stores/telemetryStore";
 import { Chart, registerables } from "chart.js";
 
 Chart.register(...registerables);
 
-interface PropChartProps {
-  value: number;      // reactive store value
-  color?: string;
-  min?: number;
-  max?: number;
-}
+export default function TelemetryCurrentChart() {
 
-export default function PropChart(props: PropChartProps) {
-  let canvasRef: HTMLCanvasElement | undefined;
-  let chart: Chart | undefined;
+  let canvas!: HTMLCanvasElement;
+  let chart: Chart;
 
-  const data: number[] = [];
-  const labels: number[] = [];
+  const MAX_POINTS = 10;
 
-  let index = 0;
+  const history: number[][] = [
+    [], [], [], [], [], []
+  ];
+
+  function addData(currents: number[]) {
+    for (let i = 0; i < 6; i++) {
+      history[i].push(currents[i] ?? 0);
+      if (history[i].length > MAX_POINTS)
+        history[i].shift();
+
+    }
+
+    chart.data.labels = history[0].map((_, i) => i.toString());
+
+    chart.data.datasets.forEach((dataset, i) => {
+      dataset.data = history[i];
+    });
+
+    chart.update("none");
+  }
 
   onMount(() => {
-    chart = new Chart(canvasRef!, {
+
+    chart = new Chart(canvas, {
+
       type: "line",
+
       data: {
-        labels,
-        datasets: [{
-          data,
-          borderColor: props.color ?? "rgb(59,130,246)",
-          borderWidth: 2,
-          pointRadius: 0,
-          tension: 0.3,
-        }],
+
+        labels: [],
+
+        datasets: [
+
+          {
+            label: "Servo A",
+            data: [],
+            borderWidth: 2,
+            tension: 0.3,
+          },
+
+          {
+            label: "Servo B",
+            data: [],
+            borderWidth: 2,
+            tension: 0.3,
+          },
+
+          {
+            label: "Servo C",
+            data: [],
+            borderWidth: 2,
+            tension: 0.3,
+          },
+
+          {
+            label: "Servo D",
+            data: [],
+            borderWidth: 2,
+            tension: 0.3,
+          },
+
+          {
+            label: "Servo E",
+            data: [],
+            borderWidth: 2,
+            tension: 0.3,
+          },
+
+          {
+            label: "Servo F",
+            data: [],
+            borderWidth: 2,
+            tension: 0.3,
+          },
+
+        ]
+
       },
+
       options: {
         responsive: true,
-        maintainAspectRatio: false,
         animation: false,
         plugins: {
-          legend: { display: false },
-          tooltip: { enabled: false },
+          legend: {
+            labels: {
+              color: "white"
+            }
+          }
         },
 
         scales: {
-
           x: {
-            display: false,
+            ticks: { color: "white" },
+            grid: { color: "rgba(255,255,255,0.1)" }
           },
 
           y: {
-            display: false,
-            min: props.min,
-            max: props.max,
-          },
-        },
-      },
+            ticks: { color: "white" },
+            grid: { color: "rgba(255,255,255,0.1)" }
+          }
+        }
+      }
     });
   });
 
   createEffect(() => {
+    telemetry.currentMagnitudes?.currentUpdateId;
 
-    const v = props.value;
-    if (!chart) return;
-    data.push(v);
-    labels.push(index++);
-    if (data.length > 10) {
-      data.shift();
-      labels.shift();
-    }
-    chart.update("none");
+    const currents = telemetry.currentMagnitudes?.currents;
+
+    if (!currents || currents.length !== 6)
+      return;
+
+    addData(currents);
+
   });
 
-  onCleanup(() => chart?.destroy());
+  onCleanup(() => {
+    chart.destroy();
+  });
 
   return (
-
-    <div class="w-full h-full min-h-[60px]">
-      <canvas ref={canvasRef} />
-    </div>
-
+    <canvas ref={canvas} />
   );
 
 }

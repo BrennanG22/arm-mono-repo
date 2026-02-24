@@ -4,6 +4,7 @@ import { appState } from "../stores/appStateStore";
 import { telemetry } from "../stores/telemetryStore";
 import { LargeContainer, MetricContainer } from "../components/ui/Containers";
 import PropChart from "../components/propChart";
+import TelemetryCurrentChart from "../components/propChart";
 
 function MonitorApplet() {
   return (
@@ -58,13 +59,8 @@ function MonitorApplet() {
           Current Sensing
         </div>
         <MetricContainer metricName="Current (A)" class="col-span-3">
-          <div class="grid grid-cols-3 grid-rows-2 space-x-0.5 space-y-0.5">
-            {/* <PropChart value={0} min={0} max={10} />
-            <TelemetryChart telemetry={telemetry} />
-            <TelemetryChart telemetry={telemetry} />
-            <TelemetryChart telemetry={telemetry} />
-            <TelemetryChart telemetry={telemetry} />
-            <TelemetryChart telemetry={telemetry} /> */}
+          <div class="">
+            <TelemetryCurrentChart />
           </div>
         </MetricContainer>
 

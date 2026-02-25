@@ -11,7 +11,7 @@ logger = logging.getLogger()
 Point = Tuple[float, float, float]
 
 
-class ArmControllerA:
+class ArmManager:
     ik_active: bool = False
     move_buffer: List[Point] = None
     armController = ArmController()
@@ -20,8 +20,9 @@ class ArmControllerA:
         self.is_active = parser_arg_data.get().use_ik
 
         if self.is_active:
+            telem = arm_telemetry.get()
             self.armController.startup()
-            self.armController.move_to_position(1, 1, 1)
+            self.armController.move_to_position(telem.position[0], telem.position[1], telem.position[2])
         pass
 
     def move_to_point(self, point: [float, float, float]):

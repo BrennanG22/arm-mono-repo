@@ -1,10 +1,13 @@
+import logging
 import math
 import threading
 from typing import List, Tuple, Optional
 
 import coordConverter
-import armControllerA
+import armManager
 import dataStores
+
+logger = logging.getLogger()
 
 
 class ArmPather:
@@ -13,23 +16,8 @@ class ArmPather:
     current_pathing_pos: [float, float, float] = None
 
     def __init__(self):
-        self.controller = armControllerA.ArmControllerA()
+        self.controller = armManager.ArmManager()
         pass
-
-    def route_to_new_point(self, new_point: [float, float, float]):
-        cartesian_points_3d, r_points_3d, theta_points_3d, phi_points_3d = (
-            coordConverter.process_3d_trajectory(
-                self.current_pos, new_point, num_points=20,
-                r_constraint=(0.5, 5.0), theta_constraint=(0, 2 * math.pi), phi_constraint=(0, math.pi / 2)
-            )
-        )
-        self.current_pos = new_point
-        self.active_routing = True
-
-        move_thread = threading.Thread(target=self._send_commands, args=(cartesian_points_3d,), daemon=True)
-        move_thread.start()
-
-        return cartesian_points_3d
 
     def get_route_to_point(self, route_point: Tuple[float, float, float], steps=20):
         cartesian_points_3d, r_points_3d, theta_points_3d, phi_points_3d = (
@@ -46,9 +34,6 @@ class ArmPather:
         move_thread = threading.Thread(target=self._send_commands, args=(path,), daemon=True)
         move_thread.start()
 
-    def send_path(self):
-        pass
-
     def _send_commands(self, path):
         self.active_routing = True
         for x, y, z in path:
@@ -64,6 +49,7 @@ arm_pather: Optional["ArmPather"] = None
 def init_arm_pather() -> None:
     global arm_pather
     if arm_pather is not None:
+        logger.critical("ArmPather was reinitialized while already started")
         raise RuntimeError("ArmPather already initialized")
 
     arm_pather = ArmPather()
@@ -71,5 +57,6 @@ def init_arm_pather() -> None:
 
 def get_arm_pather() -> ArmPather:
     if arm_pather is None:
+        logger.critical("ArmPather was accessed before it was initialized")
         raise RuntimeError("ArmPather not initialized yet")
     return arm_pather

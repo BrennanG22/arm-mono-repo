@@ -8,6 +8,7 @@ import json
 
 from armPather import get_arm_pather
 from dataStores import arm_telemetry, ActiveMode, arm_path_data, arm_boundary_data, SortingPoint
+import helpers
 
 logger = logging.getLogger()
 
@@ -138,12 +139,14 @@ class WebSocketServer:
             elif data["direction"] == "z-":
                 updated_point = (telemetry.position[0], telemetry.position[1], telemetry.position[2] - data["step"])
                 pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+            logger.info("Received move command: Direction = %s, Step = %s", data["direction"], data["step"])
 
         if message == "setControlMode":
             if data["mode"] == "manual":
                 arm_telemetry.update(lambda d: setattr(d, "active_mode", ActiveMode.MANUAL))
             else:
                 arm_telemetry.update(lambda d: setattr(d, "active_mode", ActiveMode.SORTING))
+            logger.info("Received control mode change to: " + str(data["mode"]))
 
         if message == "setPickUpPoint":
             # TODO Update this to save to the YAML file
@@ -154,6 +157,7 @@ class WebSocketServer:
                 "message": "pickUpPoint",
                 "data": [float(pick_up_point[0]), float(pick_up_point[1]), float(pick_up_point[2])]
             })
+            logger.info(f"Received new conveyor point: {helpers.log_point(pick_up_point)}")
             self.send_to_all(json_str)
 
         if message == "setSortingPoints":
@@ -163,6 +167,7 @@ class WebSocketServer:
                 sp: SortingPoint = SortingPoint(point=p["point"], categories=p["categories"])
                 new_points[key] = sp
             arm_boundary_data.update(lambda d: setattr(d, "sorting_points", new_points))
+            logger.info(f"Revived new sorting points: {new_points}")
             sorting_points = arm_boundary_data.get().sorting_points
             json_str = json.dumps({
                 "message": "sortingPoints",

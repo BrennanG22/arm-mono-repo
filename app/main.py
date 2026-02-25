@@ -65,18 +65,15 @@ def main():
     points_loader.load()
     configTools.map_points_file(points_loader.data, True)
 
-    logger.debug("Starting socket server")
+    logger.info("Starting socket server")
     socket_thread = threading.Thread(target=start_socket_server, daemon=True)
     socket_thread.start()
 
-    logger.debug("Starting web server")
+    logger.info("Starting web server")
     webServer.start_api_thread()
-
-    logger.debug("Starting websocket server")
 
     init_arm_pather()
 
-    # Start new state machine
     sorting_state_machine = sortingStates.init()
     if arm_telemetry.get().active_mode == ActiveMode.SORTING:
         sorting_state_machine.goto_state("move_to_pickup")
@@ -121,6 +118,7 @@ def main():
 
         try:
             msg = INET_data_queue.get_nowait()
+            logger.debug(f"Received INET socket message: {msg}")
             cls = msg["colour"]
             dataStores.arm_sorting_data.update(lambda d: setattr(d, "active_classification", cls))
             sorting_queue.update_from_message(msg)

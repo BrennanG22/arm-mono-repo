@@ -59,13 +59,14 @@ class _WaitForPickup:
         self.pather = get_arm_pather()
 
     def wait_for_pickup_start(self):
+        logging.info("Waiting for pickup")
         pass
 
     def wait_for_pickup_update(self):
         data = sorting_queue.pop_if_ready()
         if data:
-            # Close claw
             dataStores.arm_sorting_data.update(lambda d: setattr(d, "active_classification", data.colour))
+            logging.info("Object detected with class: %s", data.colour)
             self.machine.goto_state("lift_up")
 
 
@@ -111,7 +112,7 @@ class _MoveToSort:
 
         for name, sp in points.items():
             if classification in sp.categories:
-                logging.getLogger().debug("Sorting to point: " + name)
+                logging.getLogger().info("Sorting to point: " + name)
                 self.sorting_point = sp.point
                 path = self.pather.get_route_to_point(self.sorting_point)
                 self.pather.execute_path(path)

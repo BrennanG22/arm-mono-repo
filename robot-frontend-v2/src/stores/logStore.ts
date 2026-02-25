@@ -6,7 +6,7 @@ export interface LogEntry {
   levelNumber: number
 }
 
-const MAX_LOGS = 500;
+const MAX_LOGS = 5000;
 
 export const [logs, setLogs] = createStore<LogEntry[]>([]);
 

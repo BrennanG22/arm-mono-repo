@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js"; ;
+import { createSignal } from "solid-js";;
 import LogViewer from "../components/logViewer";
 import { LargeContainer } from "../components/ui/Containers";
 import { Select } from "../components/ui/elements/Select";
@@ -18,11 +18,12 @@ export default function LoggingApplet() {
         <div class="text-sm text-slate-400 mb-2">Minimum log level to display:</div>
         <Select
           value={logLevel}
-          options={[ 
+          options={[
             { label: "DEBUG", value: 10 },
             { label: "INFO", value: 20 },
             { label: "WARNING", value: 30 },
-            { label: "ERROR", value: 40 }
+            { label: "ERROR", value: 40 },
+            { label: "CRITICAL", value: 50 }
           ]}
           onChange={(value) => setLogLevel(value)}
         />

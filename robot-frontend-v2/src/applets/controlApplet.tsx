@@ -1,4 +1,4 @@
-import { createEffect, createSignal, on } from "solid-js";
+import { createEffect, createSignal, Match, on, Switch } from "solid-js";
 import ThreeTest from "../components/threeTest";
 import { sendTelemetryMessage } from "../stores/telemetry/telemetrySocket";
 import { telemetry } from "../stores/telemetryStore";
@@ -131,26 +131,29 @@ function ControlApplet() {
                 />
               </div>
             </div>
-
-            <div>
-              <label class="block text-sm font-medium text-slate-300 mb-2">
-                Step Size
-              </label>
-              <input
-                class="w-full p-3 rounded-xl bg-slate-800/50 border border-slate-700 text-slate-100 
+            <Switch>
+              <Match when={controlMode() === "manual"}>
+                <div>
+                  <label class="block text-sm font-medium text-slate-300 mb-2">
+                    Step Size
+                  </label>
+                  <input
+                    class="w-full p-3 rounded-xl bg-slate-800/50 border border-slate-700 text-slate-100 
                 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                type="number"
-                placeholder="Enter step size"
-                step="1"
-                min="0"
-                value={stepSize()}
-                onInput={(e) => {
-                  const val = parseFloat(e.currentTarget.value);
-                  setStepSize(val);
-                  // sendTelemetryMessage("setStepSize", { stepSize: val });
-                }}
-              />
-            </div>
+                    type="number"
+                    placeholder="Enter step size"
+                    step="1"
+                    min="0"
+                    value={stepSize()}
+                    onInput={(e) => {
+                      const val = parseFloat(e.currentTarget.value);
+                      setStepSize(val);
+                      // sendTelemetryMessage("setStepSize", { stepSize: val });
+                    }}
+                  />
+                </div>
+              </Match>
+            </Switch>
           </div>
         </LargeContainer>
       </div>

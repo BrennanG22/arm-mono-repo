@@ -76,7 +76,7 @@ function MonitorApplet() {
       </LargeContainer>
 
       {/* Camera Feed */}
-      <div class="flex items-center justify-center rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 shadow-2xl border border-slate-800/50 bg-[repeating-linear-gradient(45deg,_#020617,_#020617_10px,_#0f172a_10px,_#0f172a_20px)]">
+      <div class="flex items-center justify-center rounded-2xl bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 shadow-2xl border border-slate-800/50 bg-[repeating-linear-gradient(45deg,#020617,#020617_10px,#0f172a_10px,#0f172a_20px)]">
         <span class="text-sm uppercase tracking-widest text-slate-400">
           Live Camera Feed
         </span>

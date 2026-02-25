@@ -1,4 +1,4 @@
-import { createEffect, createSignal, Match, Switch } from "solid-js";
+import { createEffect, createSignal, Match, Show, Switch } from "solid-js";
 import { LargeContainer } from "../components/ui/Containers";
 import { Select } from "../components/ui/elements/Select";
 import { Input } from "../components/ui/elements/Input";
@@ -173,6 +173,7 @@ function ConfigureApplet() {
                     value={selectedSortingPoint}
                     onChange={(value) => setSelectedSortingPoint(value)}
                     options={Object.keys(sortingPoints()).map(key => ({ value: key, label: key }))}
+                    placeholder="Select a sorting point or make a new point..."
                   />
                 </div>
                 <ButtonRed class="aspect-square" onclick={() => deleteSortingPoint()}>
@@ -182,27 +183,29 @@ function ConfigureApplet() {
                   +
                 </Button>
               </div>
-              <h1 class="text-xl text-white font-semibold mt-4">Name</h1>
-              <Input type="text" placeholder="Point name" containerClass="w-full" value={tempSortingPointName()} onBeforeInput={(e) => { validateName(e) }} onInput={(e) => setTempSortingPointName(e.target.value)} />
-              <h1 class="text-xl text-white font-semibold  mt-2">Point</h1>
-              <div class="flex space-x-2 pt-4">
-                <Input type="number" placeholder="X" containerClass="flex-1" value={tempSortingPoint().point[0]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [Number(e.target.value), tempSortingPoint().point[1], tempSortingPoint().point[2]] })} label="X Point" />
-                <Input type="number" placeholder="Y" containerClass="flex-1" value={tempSortingPoint().point[1]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [tempSortingPoint().point[0], Number(e.target.value), tempSortingPoint().point[2]] })} label="Y Point" />
-                <Input type="number" placeholder="Z" containerClass="flex-1" value={tempSortingPoint().point[2]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [tempSortingPoint().point[0], tempSortingPoint().point[1], Number(e.target.value)] })} label="Z Point" />
-              </div>
+              <Show when={selectedSortingPoint()}>
+                <h1 class="text-xl text-white font-semibold mt-4">Name</h1>
+                <Input type="text" placeholder="Point name" containerClass="w-full" value={tempSortingPointName()} onBeforeInput={(e) => { validateName(e) }} onInput={(e) => setTempSortingPointName(e.target.value)} />
+                <h1 class="text-xl text-white font-semibold  mt-2">Point</h1>
+                <div class="flex space-x-2 pt-4">
+                  <Input type="number" placeholder="X" containerClass="flex-1" value={tempSortingPoint().point[0]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [Number(e.target.value), tempSortingPoint().point[1], tempSortingPoint().point[2]] })} label="X Point" />
+                  <Input type="number" placeholder="Y" containerClass="flex-1" value={tempSortingPoint().point[1]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [tempSortingPoint().point[0], Number(e.target.value), tempSortingPoint().point[2]] })} label="Y Point" />
+                  <Input type="number" placeholder="Z" containerClass="flex-1" value={tempSortingPoint().point[2]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [tempSortingPoint().point[0], tempSortingPoint().point[1], Number(e.target.value)] })} label="Z Point" />
+                </div>
 
-              <h1 class="text-xl text-white font-semibold  mt-4">Categories</h1>
-              <textarea class="text-white" value={tempSortingPoint().categories.join('\n')} onBeforeInput={(e) => { validateCategory(e) }} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), categories: e.target.value.split('\n').filter(c => c.trim() !== '') })}>
+                <h1 class="text-xl text-white font-semibold  mt-4">Categories</h1>
+                <textarea class="text-white" value={tempSortingPoint().categories.join('\n')} onBeforeInput={(e) => { validateCategory(e) }} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), categories: e.target.value.split('\n').filter(c => c.trim() !== '') })}>
 
-              </textarea>
-              <div class="mt-auto self-end flex space-x-2">
-                <ButtonRed disabled={!pickUpButtonsActive()} onClick={() => resetPickUpPoint()}>
-                  Reset Point
-                </ButtonRed>
-                <Button disabled={false} onClick={() => saveSortingPoint()}>
-                  Save Point
-                </Button>
-              </div>
+                </textarea>
+                <div class="mt-auto self-end flex space-x-2">
+                  <ButtonRed disabled={!pickUpButtonsActive()} onClick={() => resetPickUpPoint()}>
+                    Reset Point
+                  </ButtonRed>
+                  <Button disabled={false} onClick={() => saveSortingPoint()}>
+                    Save Point
+                  </Button>
+                </div>
+              </Show>
             </div>
           </Match>
 

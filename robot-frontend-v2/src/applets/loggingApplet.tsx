@@ -15,6 +15,7 @@ export default function LoggingApplet() {
       </LargeContainer>
       <LargeContainer class="w-2/12">
         <div class="text-lg font-semibold tracking-wider text-slate-50 mb-3">Logs Configuration</div>
+        <div class="text-sm text-slate-400 mb-2">Minimum log level to display:</div>
         <Select
           value={logLevel}
           options={[ 

@@ -60,7 +60,7 @@ export function Select<T>(props: SelectProps<T>) {
         <div
           class="
             absolute z-50 mt-2 w-full rounded-xl
-            bg-slate-900 border border-slate-700 shadow-2xl
+            bg-slate-900 border border-slate-700 shadow-2xl space-y-0.5
           "
         >
           {props.options.map(option => (

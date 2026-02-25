@@ -1,9 +1,7 @@
-import TelemetryChart from "../components/telemetryChart";
 import ThreeTest from "../components/threeTest";
 import { appState } from "../stores/appStateStore";
 import { telemetry } from "../stores/telemetryStore";
 import { LargeContainer, MetricContainer } from "../components/ui/Containers";
-import PropChart from "../components/propChart";
 import TelemetryCurrentChart from "../components/propChart";
 
 function MonitorApplet() {

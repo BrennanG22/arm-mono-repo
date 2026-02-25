@@ -33,7 +33,9 @@ rm -rf "$DEB_ROOT"
 mkdir -p "$DEB_ROOT/DEBIAN"
 mkdir -p "$DEB_ROOT/opt/armController/app"
 mkdir -p "$DEB_ROOT/opt/armController/robot-frontend-v2"
+mkdir -p "$DEB_ROOT/opt/armController/logs"
 mkdir -p "$DEB_ROOT/etc/systemd/system"
+
 
 rsync -av --exclude='__pycache__/' --exclude='*.pyc' "$SRC_APP/" "$DEB_ROOT/opt/armController/app/"
 cp -r "$ROOT_DIR/robot-frontend-v2/dist" "$DEB_ROOT/opt/armController/robot-frontend-v2"
@@ -53,6 +55,9 @@ find "$DEB_ROOT/opt/armController/app" -type f -exec chmod 644 {} \;
 
 dos2unix "$DEB_ROOT/DEBIAN/postinst"
 dos2unix "$DEB_ROOT/DEBIAN/prerm"
+dos2unix "$DEB_ROOT/DEBIAN/postrm"
+dos2unix "$OUTPUT_DIR/debian_revision.txt"
+dos2unix "$OUTPUT_DIR/prev_upstream_version.txt"
 
 REV_FILE="$OUTPUT_DIR/debian_revision.txt"
 PREV_VERSION_FILE="$OUTPUT_DIR/prev_upstream_version.txt"

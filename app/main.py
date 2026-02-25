@@ -172,8 +172,14 @@ def send_test_current(ws_server):
 
 
 def init_logger(ws_server: webSocketServer):
+
+    # Ensure log directory exists
+    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+
+    # Optional: remove old log file
     if os.path.exists(LOG_FILE):
         os.remove(LOG_FILE)
+
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
@@ -186,10 +192,10 @@ def init_logger(ws_server: webSocketServer):
     console.setLevel(logging.INFO)
     console.setFormatter(formatter)
 
-    # File handler
-    file = logging.FileHandler(LOG_FILE, mode="a")
-    file.setLevel(logging.DEBUG)
-    file.setFormatter(formatter)
+    # File handler (this WILL create file if missing)
+    file_handler = logging.FileHandler(LOG_FILE, mode="a", encoding="utf-8")
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
 
     # Web socket handler
     ws_handler = webSocketLogHandler.WebSocketHandler(ws_server.send_to_all)
@@ -198,7 +204,7 @@ def init_logger(ws_server: webSocketServer):
 
     logger.handlers.clear()
     logger.addHandler(console)
-    logger.addHandler(file)
+    logger.addHandler(file_handler)
     logger.addHandler(ws_handler)
 
     logging.getLogger("websockets").setLevel(logging.WARNING)

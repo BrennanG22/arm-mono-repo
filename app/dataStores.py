@@ -24,7 +24,7 @@ class SortingPoint:
 @dataclass
 class _ArmTelemetryData:
     servo_current: List[float] = field(default_factory=list)
-    position: Tuple[float, float, float] = (8.0, 8.0, 8.0)
+    position: Tuple[float, float, float] = (20, 0, 20)
     requested_position: Optional[Tuple[float, float, float]] = None
     active_mode: ActiveMode = ActiveMode.MANUAL
 

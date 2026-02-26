@@ -121,24 +121,24 @@ class WebSocketServer:
         if (message == "move") and (telemetry.active_mode == ActiveMode.MANUAL) and (pather_data is not None):
             if data["direction"] == "x+":
                 updated_point = (telemetry.position[0] + data["step"], telemetry.position[1], telemetry.position[2])
-                pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+                pather.execute_path(pather.get_route_to_point(updated_point, steps=0))
             elif data["direction"] == "x-":
                 updated_point = (telemetry.position[0] - data["step"], telemetry.position[1], telemetry.position[2])
-                pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+                pather.execute_path(pather.get_route_to_point(updated_point, steps=0))
 
             elif data["direction"] == "y+":
                 updated_point = (telemetry.position[0], telemetry.position[1] + data["step"], telemetry.position[2])
-                pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+                pather.execute_path(pather.get_route_to_point(updated_point, steps=0))
             elif data["direction"] == "y-":
                 updated_point = (telemetry.position[0], telemetry.position[1] - data["step"], telemetry.position[2])
-                pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+                pather.execute_path(pather.get_route_to_point(updated_point, steps=0))
 
             elif data["direction"] == "z+":
                 updated_point = (telemetry.position[0], telemetry.position[1], telemetry.position[2] + data["step"])
-                pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+                pather.execute_path(pather.get_route_to_point(updated_point, steps=0))
             elif data["direction"] == "z-":
                 updated_point = (telemetry.position[0], telemetry.position[1], telemetry.position[2] - data["step"])
-                pather.execute_path(pather.get_route_to_point(updated_point, steps=2))
+                pather.execute_path(pather.get_route_to_point(updated_point, steps=0))
             logger.info("Received move command: Direction = %s, Step = %s", data["direction"], data["step"])
 
         if message == "setControlMode":

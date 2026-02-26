@@ -1,7 +1,9 @@
 import queue
 from collections import deque
 from dataclasses import dataclass
+import logging
 
+logger = logging.getLogger()
 
 @dataclass
 class ObjectData:
@@ -16,18 +18,22 @@ class SortingObjectQueue:
     _items: dict[int, ObjectData] = {}
 
     def update_from_message(self, message: str):
+        logger.debug("Message: %s", message)
         index = message["index"]
         data = ObjectData(
             index=index,
             colour=message["colour"],
             shape=message["shape"],
-            is_ready=True if message["Object Ready"] == "Ready" else False
+            is_ready=message["Object Ready"]
         )
+        logger.info("Colour: %s", data.colour)
+        
         if index not in self._items:
             self._queue.append(index)
         self._items[index] = data
 
     def pop_if_ready(self) -> ObjectData:
+        # logger.debug("Queue: %s", self._queue )
         if not self._queue:
             return None
 

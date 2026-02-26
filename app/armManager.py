@@ -22,7 +22,8 @@ class ArmManager:
         if self.is_active:
             telem = arm_telemetry.get()
             self.armController.startup()
-            self.armController.move_to_position(telem.position[0], telem.position[1], telem.position[2])
+            point = (telem.position[0], telem.position[1], telem.position[2])
+            self.move_to_point(point)
         pass
 
     def move_to_point(self, point: [float, float, float]):

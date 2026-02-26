@@ -80,6 +80,7 @@ class _LiftUp:
         self.pather = get_arm_pather()
 
     def lift_up_start(self):
+        self.pather.set_grip(1)
         current_data = dataStores.arm_telemetry.get()
         x, y, z = current_data.position
         self.lift_up_point = (x, y, z + 1)
@@ -126,4 +127,5 @@ class _MoveToSort:
         target = np.array(self.sorting_point, dtype=float)
 
         if np.allclose(pos, target, atol=1e-5):
+            self.pather.set_grip(0)
             self.machine.goto_state("move_to_pickup")

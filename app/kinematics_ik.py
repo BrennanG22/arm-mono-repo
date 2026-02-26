@@ -115,9 +115,26 @@ ROT3U_chain = Chain(
             rotation=None,
             joint_type="fixed",
         ),
+    ],
+    active_links_mask= [
+        False,
+        True,
+        True,
+        True,
+        True,
+        False  
     ]
 )
 
+# # remove this if it is causing issues - just here to suppress warning message
+# ROT3U_chain.active_links_mask = [
+#     False,
+#     True,
+#     True,
+#     True,
+#     True,
+#     False
+# ]
 
 def compute_errors(chain, joints, target_position,
                    target_orientation=None, orientation_mode=None):

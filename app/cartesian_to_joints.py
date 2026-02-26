@@ -4,6 +4,18 @@ This file is really more of an Inverse Kinematics to Joint Angles bridge rn. it 
 and class creation, but doesn't have any functionality to actually send out PWM signals. 
 '''
 
+# NOTES FROM TEST SESSION JAN 29
+'''
+-make function that can return current position (xyz) - done
+-adjust time function to take the difference in angles and get time of movement from that (done)
+-
+'''
+
+# To do
+'''
+- finish making startup and shutdown capability
+'''
+
 
 # ik_to_pwm_bridge.py
 
@@ -28,13 +40,28 @@ class ArmController:
           +90 = tool Z-axis up
           -90 = tool Z-axis down
     """
+    _startup_done_global = False
 
     def __init__(self):
+        """
+        initialization
+        imports ik model from kinematics_ik
+        sets current servo angles when code is first ran
+
+        """
         self.chain = ROT3U_chain
         # One joint value per link in the chain (OriginLink + 5 URDFLinks)
         #self.current_joints = np.zeros(len(self.chain.links), dtype=float)
         self.current_servo_angles_deg = [90, 90, 90, 90, 180, 90]
         self.servo_offsets_deg = [90, 90, 90, 90, 90, 90]
+
+        self.startup_done = False
+
+    # def ensure_startup(self):
+    #     """Run startup() exactly once, before the first real motion."""
+    #     if not ArmController._startup_done_global:
+    #         self.startup()
+    #         ArmController._startup_done_global = True
 
     def gripper(self, closed):
         import time
@@ -48,8 +75,14 @@ class ArmController:
             kit.servo[5].angle=0
 
     def startup(self):
-        self.current_servo_angles_deg = [90,0,50,135,90,90]
-        self.send_angles_to_servos([0,0,0,0,0,0])
+        '''
+        Safely moves from resting position to 'straight up' position
+        '''
+        self.current_servo_angles_deg = [89.99999999999994, 140.94184064661795, 25.460424777616538, 115.48141497451923, 180, 90.0] # resting position
+        self.send_angles_to_servos([0,0,0,0,0,0]) # straight-up position
+
+    # def get_current_position(self)
+        
 
 
     def send_angles_to_servos(self, joint_angles_deg):
@@ -107,8 +140,22 @@ class ArmController:
         targets = commanded_angles  
         print("starts are: ", starts)
 
+        # dynamically change speed based on degrees
+        wait_time = 0
+        for ch in range(5):
+            start = starts[ch]
+            target = targets[ch]
+            difference = abs(target-start) # degrees
+            # 30 deg/s
+            t = difference/30 # seconds to take for motion
+            if t > wait_time:
+                wait_time = t
+            else:
+                t = 0
+
+
         print("Moving to Position")
-        rectangular(starts, targets, total_time=2, steps=60)
+        rectangular(starts, targets, total_time=wait_time, steps = max(1,int(wait_time*50)))
         print("Position Reached")
         self.current_servo_angles_deg = targets
 
@@ -136,6 +183,23 @@ class ArmController:
 
 
     def move_to_position(self, x_cm, y_cm, z_cm, phi_deg=0):
+        """
+        Attempts to move robotic arm to requested position.
+        All coordinates should be in cm, measured from the base of the robot.
+
+        Returns:
+          (reachable, info_dict, servo_angles)
+
+        reachable: bool 
+
+        info_dict: same structure as move_to_position uses
+        (mode, pos_err, ori_err)
+
+        servo_angles: list of joint angles (deg) IF reachable, else None
+        """
+
+        # guarantee startup ran before the first move
+        #self.ensure_startup()
         target_pos_m = np.array([x_cm, y_cm, z_cm], dtype=float) / 100.0
         #phi_deg = 0
         if phi_deg == 0:
@@ -200,7 +264,61 @@ class ArmController:
 
         return servo_angles
 
+    def check_position(self, x_cm, y_cm, z_cm, phi_deg=0):
+        """
+        Simulates move_to_position WITHOUT sending servo commands.
 
+        Returns:
+          (reachable, info_dict, servo_angles)
+
+        reachable: bool 
+
+        info_dict: same structure as move_to_position uses
+        (mode, pos_err, ori_err)
+
+        servo_angles: list of joint angles (deg) IF reachable, else None
+        """
+
+        target_pos_m = np.array([x_cm, y_cm, z_cm], dtype=float) / 100.0
+
+        if phi_deg == 0:
+            target_dir = self._phi0_orientation_for_position(target_pos_m)
+            orientation_mode = "X"
+        else:
+            target_dir = self._phi_to_target_orientation(phi_deg)
+            orientation_mode = "X"
+
+        solution, info = ik_with_orientation_fallback(
+            self.chain,
+            target_position=target_pos_m,
+            target_orientation=target_dir,
+            orientation_mode=orientation_mode,
+        )
+
+        mode = info["mode"]
+        pos_err = info["pos_err"]
+        ori_err = info["ori_err"]
+
+        # Hard failure
+        if mode == "fail-both":
+            return False, info, None
+
+        # Extract joint angles exactly like move_to_position
+        base_deg     = math.degrees(solution[1])
+        shoulder_deg = math.degrees(solution[2])
+        elbow_deg    = math.degrees(solution[3])
+        wrist_deg    = math.degrees(solution[4])
+
+        servo_angles = [
+            base_deg,
+            shoulder_deg,
+            elbow_deg,
+            wrist_deg,
+            0.0,
+            0.0,
+        ]
+
+        return True, info, servo_angles
 
 
 

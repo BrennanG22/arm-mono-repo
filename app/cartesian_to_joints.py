@@ -21,6 +21,7 @@ and class creation, but doesn't have any functionality to actually send out PWM 
 
 import math
 import numpy as np
+import json
 #import matplotlib.pyplot
 #from mpl_toolkits.mplot3d import Axes3D
 
@@ -40,7 +41,7 @@ class ArmController:
           +90 = tool Z-axis up
           -90 = tool Z-axis down
     """
-    _startup_done_global = False
+    #_startup_done_global = False
 
     def __init__(self):
         """
@@ -55,7 +56,7 @@ class ArmController:
         self.current_servo_angles_deg = [90, 90, 90, 90, 180, 90]
         self.servo_offsets_deg = [90, 90, 90, 90, 90, 90]
 
-        self.startup_done = False
+        #self.startup_done = False
 
     # def ensure_startup(self):
     #     """Run startup() exactly once, before the first real motion."""
@@ -63,7 +64,36 @@ class ArmController:
     #         self.startup()
     #         ArmController._startup_done_global = True
 
+    def load_position(self, filename="angles.json"):
+        """Reads servo angles from a JSON file and updates the robot's state."""
+        try:
+            # Open the file in read mode ('r')
+            with open(filename, 'r') as json_file:
+                # json.load parses the text file back into Python lists/dictionaries
+                loaded_angles = json.load(json_file)
+            
+            # Update your instance variable with the retrieved data
+            self.current_servo_angles_deg = loaded_angles
+            print(f"Successfully loaded angles: {self.current_servo_angles_deg}")
+            return True
+
+        # Catch specific errors to prevent crashes if something goes wrong
+        except FileNotFoundError:
+            print(f"Error: Could not find the file '{filename}'.")
+            return False
+        except json.JSONDecodeError:
+            print(f"Error: '{filename}' contains invalid JSON data.")
+            return False
+        except IOError as e:
+            print(f"Error reading from '{filename}': {e}")
+            return False
+
     def gripper(self, closed):
+        '''
+        1 = closed
+        0 = open
+        need to incorporate current sensing to this
+        '''
         import time
         from adafruit_servokit import ServoKit
         kit = ServoKit(channels=16)
@@ -78,12 +108,19 @@ class ArmController:
         '''
         Safely moves from resting position to 'straight up' position
         '''
-        self.current_servo_angles_deg = [89.99999999999994, 140.94184064661795, 25.460424777616538, 115.48141497451923, 180, 90.0] # resting position
+        #self.load_position()
         self.send_angles_to_servos([0,0,0,0,0,0]) # straight-up position
 
-    # def get_current_position(self)
-        
+    def shutdown(self):
+        '''
+        safely moves to resting position
+        '''
+        #self.load_position()
+        self.send_angles_to_servos([0, 90, 10, 0, 0, 0]) # adjust in lab session
 
+
+    def get_current_position(self):
+        return self.current_servo_angles_deg
 
     def send_angles_to_servos(self, joint_angles_deg):
         """
@@ -91,6 +128,10 @@ class ArmController:
         joint_angles_deg: list of 6 servo angles in degrees
                           [base, shoulder, elbow, wrist, wrist_roll, gripper]
         """
+
+        step_constant = 50 # multiplies movement time to determine how many steps take place
+        speed_constant = 30 # deg/s of the servo with the greatest change
+
         # print("\nSending joint angles to servo controller:")
         # for i, angle in enumerate(joint_angles_deg):
         #     print(f"Servo {i}: {round(angle, 2)}°")
@@ -125,7 +166,9 @@ class ArmController:
         ]
         
 
-        print("joint angles are: ",commanded_angles)
+        #print("joint angles are: ",commanded_angles)
+
+        
         def rectangular(starts, targets, total_time, steps):
             wait_time = total_time / steps
             for s in range(1, steps + 1):
@@ -135,29 +178,47 @@ class ArmController:
                     step_size = (target - start) / steps
                     kit.servo[ch].angle = start + step_size * s
                 time.sleep(wait_time)
+            return None
 
+        def store_position(self, filename = 'angles.json'):
+            angles = self.current_servo_angles_deg
+            # Open the file in write mode and save the data
+            try:
+                with open(filename, 'w') as json_file:
+                    # indent=4 makes the JSON file readable (pretty-printed)
+                    json.dump(angles, json_file, indent=4) 
+                return True
+            except IOError as e:
+                print(f"Error saving to {filename}: {e}")
+                return False
+
+        self.load_position()
         starts = self.current_servo_angles_deg[:] 
         targets = commanded_angles  
         print("starts are: ", starts)
 
         # dynamically change speed based on degrees
-        wait_time = 0
+        total_time1 = 0
         for ch in range(5):
             start = starts[ch]
             target = targets[ch]
             difference = abs(target-start) # degrees
-            # 30 deg/s
-            t = difference/30 # seconds to take for motion
-            if t > wait_time:
-                wait_time = t
+            t = difference/speed_constant # seconds to take for motion
+            if t > total_time1:
+                total_time1 = t
             else:
                 t = 0
 
 
         print("Moving to Position")
-        rectangular(starts, targets, total_time=wait_time, steps = max(1,int(wait_time*50)))
+        rectangular(starts, targets, total_time=total_time1, steps = max(1,int(total_time1*step_constant)))
         print("Position Reached")
         self.current_servo_angles_deg = targets
+        if store_position():
+            print("Current Position Saved")
+        else:
+            print("failed to save current position")
+
 
     def _phi_to_target_orientation(self, phi_deg):
         """

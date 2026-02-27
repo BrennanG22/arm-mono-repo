@@ -1,21 +1,20 @@
 pickUpPoint:
-  x: 20
+  x: 21
   y: 0
   z: 10
-
 sortingPoints:
-  - name: orange
-    points:
-      x: 20.0
-      y: -10.8
-      z: 0.5
-    categories:
-      - orange
-
-  - name: blue
-    points:
-      x: 15.0
-      y: 15.0
-      z: 0.0
-    categories:
-      - blue
+- name: blue
+  points:
+    x: 15
+    y: 15
+    z: 0
+  categories:
+  - blue
+- name: test
+  points:
+    x: 203
+    y: -10.8
+    z: 0.5
+  categories:
+  - orange
+  - blue

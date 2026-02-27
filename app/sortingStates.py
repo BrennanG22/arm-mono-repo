@@ -38,6 +38,7 @@ class _MoveToPickup:
         self.pather = get_arm_pather()
 
     def move_to_pickup_start(self):
+        self.pather.controller.set_grip_state(0)
         data = dataStores.arm_boundary_data.get()
         self.pick_up_point = data.conveyor_pickup_point
         path = self.pather.get_route_to_point(self.pick_up_point)
@@ -80,7 +81,7 @@ class _LiftUp:
         self.pather = get_arm_pather()
 
     def lift_up_start(self):
-        self.pather.set_grip(1)
+        self.pather.controller.set_grip_state(1)
         current_data = dataStores.arm_telemetry.get()
         x, y, z = current_data.position
         self.lift_up_point = (x, y, z + 1)
@@ -127,5 +128,5 @@ class _MoveToSort:
         target = np.array(self.sorting_point, dtype=float)
 
         if np.allclose(pos, target, atol=1e-5):
-            self.pather.set_grip(0)
+            self.pather.controller.set_grip_state(0)
             self.machine.goto_state("move_to_pickup")

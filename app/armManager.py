@@ -31,7 +31,6 @@ class ArmManager:
         logger.debug(f"Moving to the requested position: {helpers.log_point(point)}")
         if self.is_active:
             self.armController.move_to_position(point[0], point[1], point[2])
-            self.armController.gripper(0)
         else:
             time.sleep(0.1)
         self.on_move_complete(point)
@@ -41,3 +40,7 @@ class ArmManager:
         logger.debug(f"Move to {helpers.log_point(point)} complete")
         if point is not None:
             arm_telemetry.update(lambda d: setattr(d, "position", point))
+
+    def set_grip_state(self, state: int):
+        if self.is_active:
+            self.armController.gripper(state)

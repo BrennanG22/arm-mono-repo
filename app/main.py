@@ -16,6 +16,7 @@ import webSocketServer
 import webSocketLogHandler
 from dataStores import arm_telemetry, ActiveMode, parser_arg_data
 from armPather import init_arm_pather
+from configTools import yaml_manager
 from sortingObjectQueue import sorting_queue
 
 INET_data_queue = queue.Queue()
@@ -61,9 +62,9 @@ def main():
 
     logger.info("Starting main")
 
-    points_loader = configTools.YAMLLoader(config_path)
-    points_loader.load()
-    configTools.map_points_file(points_loader.data, True)
+    yaml_manager.initialize(config_path)
+    data = yaml_manager.load()
+    configTools.map_points_file(data, True)
 
     logger.info("Starting socket server")
     socket_thread = threading.Thread(target=start_socket_server, daemon=True)

@@ -21,6 +21,7 @@ and class creation, but doesn't have any functionality to actually send out PWM 
 
 import math
 import numpy as np
+import json
 #import matplotlib.pyplot
 #from mpl_toolkits.mplot3d import Axes3D
 
@@ -40,7 +41,7 @@ class ArmController:
           +90 = tool Z-axis up
           -90 = tool Z-axis down
     """
-    _startup_done_global = False
+    #_startup_done_global = False
 
     def __init__(self):
         """
@@ -49,13 +50,14 @@ class ArmController:
         sets current servo angles when code is first ran
 
         """
+        self.current_value = 0
         self.chain = ROT3U_chain
         # One joint value per link in the chain (OriginLink + 5 URDFLinks)
         #self.current_joints = np.zeros(len(self.chain.links), dtype=float)
         self.current_servo_angles_deg = [90, 90, 90, 90, 180, 90]
         self.servo_offsets_deg = [90, 90, 90, 90, 90, 90]
 
-        self.startup_done = False
+        #self.startup_done = False
 
     # def ensure_startup(self):
     #     """Run startup() exactly once, before the first real motion."""
@@ -63,27 +65,201 @@ class ArmController:
     #         self.startup()
     #         ArmController._startup_done_global = True
 
+
+    def current_sense(self, current):
+        self.current_value = current
+        return None
+
+    def load_position(self, filename="angles.json"):
+        """Reads servo angles from a JSON file and updates the robot's state.
+        if JSON file DNE, creates it with shutdown coordinates"""
+        try:
+            # Open the file in read mode ('r')
+            with open(filename, 'r') as json_file:
+                # json.load parses the text file back into Python lists/dictionaries
+                loaded_angles = json.load(json_file)
+            
+            # Update your instance variable with the retrieved data
+            self.current_servo_angles_deg = loaded_angles
+            print(f"Successfully loaded angles: {self.current_servo_angles_deg}")
+            return True
+
+        # Catch specific errors to prevent crashes if something goes wrong
+        except FileNotFoundError:
+            print(f"Error: Could not find the file '{filename}'.")
+            print('Defaulting to shutdown position.')
+            self.current_servo_angles_deg = [89.99999999999999, 3.5108631313387377, 123.12677409500321, 60.38408907252596, 180, 90.0]
+            self.store_position()
+            self.load_position()
+            return True
+        except json.JSONDecodeError:
+            print(f"Error: '{filename}' contains invalid JSON data.")
+            return False
+        except IOError as e:
+            print(f"Error reading from '{filename}': {e}")
+            return False
+        
+    def store_position(self, filename = 'angles.json'):
+        angles = self.current_servo_angles_deg
+        # Open the file in write mode and save the data
+        try:
+            with open(filename, 'w') as json_file:
+                # indent=4 makes the JSON file readable (pretty-printed)
+                json.dump(angles, json_file, indent=4) 
+            return True
+        except IOError as e:
+            print(f"Error saving to {filename}: {e}")
+            return False
+
     def gripper(self, closed):
+        '''
+        1 = closed
+        0 = open
+        '''
+
+        # --- TWEAKABLE CONSTANTS ---
+        ANGLE_OPEN = 0
+        ANGLE_CLOSED = 180
+        STEP_SIZE = 2             # Degrees to move per iteration
+        STEP_DELAY = 0.02         # Seconds to wait between steps to allow physical movement & sensor update
+        CURRENT_THRESHOLD = 500   # Sensor value that defines a "spike" (update to your sensor's metric)
+        BACKOFF_ANGLE = 5         # Degrees to back off if a spike is detected
+
         import time
         from adafruit_servokit import ServoKit
         kit = ServoKit(channels=16)
-        kit.servo[5].set_pulse_width_range(900, 1500)
+        kit.servo[5].set_pulse_width_range(900, 1500) # tune to open and closed positions to a max of (600, 2450)
         kit.servo[5].actuation_range = 180
-        if closed == 1:
-            kit.servo[5].angle=180
+
+        # Determine target angle based on command
+        target_angle = ANGLE_CLOSED if closed == 1 else ANGLE_OPEN
+
+        self.load_position()
+        current_angle = self.current_servo_angles_deg[5]
+
+        # Determine direction of travel (+1 for closing, -1 for opening)
+        if target_angle > current_angle:
+            direction = 1
+        elif target_angle < current_angle:
+            direction = -1
         else:
-            kit.servo[5].angle=0
+            return # Already at the requested position
+        
+        # Move incrementally towards the target
+        while (direction == 1 and current_angle < target_angle) or \
+              (direction == -1 and current_angle > target_angle):
+            
+            # Calculate next angle and clamp it to our min/max limits to prevent errors
+            current_angle += (direction * STEP_SIZE)
+            current_angle = max(ANGLE_OPEN, min(ANGLE_CLOSED, current_angle))
+            
+            # Command the servo
+            kit.servo[5].angle = current_angle
+            
+            # Wait for servo to move and for the async current_sense() to catch up
+            time.sleep(STEP_DELAY)
+            
+            # Check for current spike
+            # (Ensures self.current_value exists before checking it)
+            if hasattr(self, 'current_value') and self.current_value is not None:
+                if self.current_value > CURRENT_THRESHOLD:
+                    print(f"Current spike detected ({self.current_value}). Halting gripper.")
+                    
+                    # OPTION A: Hold current position
+                    # We achieve this by simply breaking out of the loop and leaving the angle as-is.
+                    break 
+                    
+                    # OPTION B: Back off slightly 
+                    # (Commented out as requested)
+                    # current_angle -= (direction * BACKOFF_ANGLE)
+                    # current_angle = max(ANGLE_OPEN, min(ANGLE_CLOSED, current_angle))
+                    # kit.servo[SERVO_CHANNEL].angle = current_angle
+                    # break
+                    
+        print(f"Gripper action finished at angle: {current_angle}")
+
 
     def startup(self):
         '''
         Safely moves from resting position to 'straight up' position
         '''
-        self.current_servo_angles_deg = [89.99999999999994, 140.94184064661795, 25.460424777616538, 115.48141497451923, 180, 90.0] # resting position
+        #self.load_position()
         self.send_angles_to_servos([0,0,0,0,0,0]) # straight-up position
 
-    # def get_current_position(self)
-        
+    def shutdown(self):
+        '''
+        safely moves to resting position
+        '''
+        #self.load_position()
+        # 35 0 10
+        self.move_to_position(35, 0 , 10)
+        #self.send_angles_to_servos([0, 90, 10, 0, 0, 0]) # adjust in lab session
 
+
+    def get_current_position_deg(self):
+        '''
+        gives the current angles of each servo
+        '''
+        return self.current_servo_angles_deg
+    
+    def get_current_position_coords(self):
+        '''
+        not functional yet
+        '''
+        angles = self.current_servo_angles_deg
+        base = angles[0]
+        shoulder = angles[1]
+        elbow = angles[2]
+        wrist = angles[3]
+        rads = [
+            0,
+            math.radians(base),
+            math.radians(shoulder),
+            math.radians(elbow),
+            math.radians(wrist),
+            0
+        ]
+        fk_matrix = self.chain.forward_kinematics(rads)
+        print(fk_matrix)
+        
+        x_m = fk_matrix[0, 3]
+        y_m = fk_matrix[1, 3]
+        z_m = fk_matrix[2, 3]
+
+        target_pos_m = [x_m, y_m, z_m]
+        target_dir = self._phi0_orientation_for_position(target_pos_m)
+        orientation_mode = "X"   # constrain X-axis of EE
+
+        solution, info = ik_with_orientation_fallback(
+            self.chain,
+            target_position=target_pos_m,
+            target_orientation=target_dir,
+            orientation_mode=orientation_mode,
+            # initial_position=self.current_joints,
+        )
+
+        base_deg     = math.degrees(solution[1])
+        shoulder_deg = math.degrees(solution[2])
+        elbow_deg    = math.degrees(solution[3])
+        wrist_deg    = math.degrees(solution[4])
+
+        # We have 4 DOFs modeled; add 2 placeholders (wrist_roll, gripper)
+        servo_angles = [
+            base_deg,
+            shoulder_deg,
+            elbow_deg,
+            wrist_deg,
+            0.0,  # wrist_roll placeholder
+            0.0,  # gripper placeholder
+        ]
+
+        print(servo_angles)
+
+        x_cm = round(x_m * 100.0, 2)
+        y_cm = round(y_m * 100.0, 2)
+        z_cm = round(z_m * 100.0, 2)
+
+        return [x_cm, y_cm, z_cm]
 
     def send_angles_to_servos(self, joint_angles_deg):
         """
@@ -91,6 +267,10 @@ class ArmController:
         joint_angles_deg: list of 6 servo angles in degrees
                           [base, shoulder, elbow, wrist, wrist_roll, gripper]
         """
+
+        step_constant = 50 # multiplies movement time to determine how many steps take place
+        speed_constant = 60 # deg/s of the servo with the greatest change
+
         # print("\nSending joint angles to servo controller:")
         # for i, angle in enumerate(joint_angles_deg):
         #     print(f"Servo {i}: {round(angle, 2)}°")
@@ -125,7 +305,9 @@ class ArmController:
         ]
         
 
-        print("joint angles are: ",commanded_angles)
+        #print("joint angles are: ",commanded_angles)
+
+        
         def rectangular(starts, targets, total_time, steps):
             wait_time = total_time / steps
             for s in range(1, steps + 1):
@@ -135,29 +317,35 @@ class ArmController:
                     step_size = (target - start) / steps
                     kit.servo[ch].angle = start + step_size * s
                 time.sleep(wait_time)
+            return None
 
+        self.load_position()
         starts = self.current_servo_angles_deg[:] 
         targets = commanded_angles  
         print("starts are: ", starts)
 
         # dynamically change speed based on degrees
-        wait_time = 0
+        total_time1 = 0
         for ch in range(5):
             start = starts[ch]
             target = targets[ch]
             difference = abs(target-start) # degrees
-            # 30 deg/s
-            t = difference/30 # seconds to take for motion
-            if t > wait_time:
-                wait_time = t
+            t = difference/speed_constant # seconds to take for motion
+            if t > total_time1:
+                total_time1 = t
             else:
                 t = 0
 
 
         print("Moving to Position")
-        rectangular(starts, targets, total_time=wait_time, steps = max(1,int(wait_time*50)))
+        rectangular(starts, targets, total_time=total_time1, steps = max(1,int(total_time1*step_constant)))
         print("Position Reached")
         self.current_servo_angles_deg = targets
+        if self.store_position():
+            print("Current Position Saved")
+        else:
+            print("failed to save current position")
+
 
     def _phi_to_target_orientation(self, phi_deg):
         """
@@ -357,3 +545,4 @@ if __name__ == "__main__":
     #     if again != 'y':
     #         print('done')
     #         break
+

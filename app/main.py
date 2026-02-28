@@ -6,6 +6,7 @@ import queue
 import random
 import threading
 import time
+from typing import List
 
 import configTools
 import dataStores
@@ -14,6 +15,7 @@ import sortingStates
 import webServer
 import webSocketServer
 import webSocketLogHandler
+import currentSensor
 from dataStores import arm_telemetry, ActiveMode, parser_arg_data
 from armPather import init_arm_pather
 from configTools import yaml_manager
@@ -79,12 +81,15 @@ def main():
     if arm_telemetry.get().active_mode == ActiveMode.SORTING:
         sorting_state_machine.goto_state("move_to_pickup")
 
+    current_sensor = currentSensor.CurrentSensor(current_update_callback, ws_server)
+    current_sensor.start()
+
     # TEMP FIX: Part of temp fix below
     mode = arm_telemetry.get().active_mode
 
     while True:
         time.sleep(0.001)
-        send_test_current(ws_server)
+        # send_test_current(ws_server)
         # TEMP FIX: Remedy issue of transition from manual to sorting
         if mode == ActiveMode.SORTING and arm_telemetry.get().active_mode == ActiveMode.MANUAL:
             sorting_state_machine.current_state = None
@@ -172,8 +177,24 @@ def send_test_current(ws_server):
         }))
 
 
-def init_logger(ws_server: webSocketServer):
+# TODO Fix the passing of ws_server
+def current_update_callback(currents: List[float], ws_server):
+    # CALL GAVIN CODE HERE
+    ws_server.send_to_all(json.dumps({
+        "message": "currentUpdate",
+        "data": [
+            currents[0],
+            currents[1],
+            currents[2],
+            currents[3],
+            currents[4],
+            currents[5],
+        ]
+    }))
+    pass
 
+
+def init_logger(ws_server: webSocketServer):
     # Ensure log directory exists
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 

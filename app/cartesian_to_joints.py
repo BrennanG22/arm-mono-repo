@@ -50,6 +50,7 @@ class ArmController:
         sets current servo angles when code is first ran
 
         """
+        self.current_value = 0
         self.chain = ROT3U_chain
         # One joint value per link in the chain (OriginLink + 5 URDFLinks)
         #self.current_joints = np.zeros(len(self.chain.links), dtype=float)
@@ -63,6 +64,11 @@ class ArmController:
     #     if not ArmController._startup_done_global:
     #         self.startup()
     #         ArmController._startup_done_global = True
+
+
+    def current_sense(self, current):
+        self.current_value = current
+        return None
 
     def load_position(self, filename="angles.json"):
         """Reads servo angles from a JSON file and updates the robot's state."""
@@ -116,6 +122,7 @@ class ArmController:
         safely moves to resting position
         '''
         #self.load_position()
+        # 35 0 10
         self.send_angles_to_servos([0, 90, 10, 0, 0, 0]) # adjust in lab session
 
 

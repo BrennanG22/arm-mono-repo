@@ -72,7 +72,7 @@ class ArmController:
 
     def load_position(self, filename="angles.json"):
         """Reads servo angles from a JSON file and updates the robot's state.
-        need to adjust to make first state shutdown state if json DNE"""
+        if JSON file DNE, creates it with shutdown coordinates"""
         try:
             # Open the file in read mode ('r')
             with open(filename, 'r') as json_file:
@@ -545,3 +545,4 @@ if __name__ == "__main__":
     #     if again != 'y':
     #         print('done')
     #         break
+

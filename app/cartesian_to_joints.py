@@ -50,7 +50,6 @@ class ArmController:
         sets current servo angles when code is first ran
 
         """
-        self.current_value = 0
         self.chain = ROT3U_chain
         # One joint value per link in the chain (OriginLink + 5 URDFLinks)
         #self.current_joints = np.zeros(len(self.chain.links), dtype=float)
@@ -64,11 +63,6 @@ class ArmController:
     #     if not ArmController._startup_done_global:
     #         self.startup()
     #         ArmController._startup_done_global = True
-
-
-    def current_sense(self, current):
-        self.current_value = current
-        return None
 
     def load_position(self, filename="angles.json"):
         """Reads servo angles from a JSON file and updates the robot's state."""
@@ -106,7 +100,7 @@ class ArmController:
         kit.servo[5].set_pulse_width_range(900, 1500)
         kit.servo[5].actuation_range = 180
         if closed == 1:
-            kit.servo[5].angle=180
+            kit.servo[5].angle=160
         else:
             kit.servo[5].angle=0
 
@@ -122,7 +116,6 @@ class ArmController:
         safely moves to resting position
         '''
         #self.load_position()
-        # 35 0 10
         self.send_angles_to_servos([0, 90, 10, 0, 0, 0]) # adjust in lab session
 
 
@@ -137,7 +130,7 @@ class ArmController:
         """
 
         step_constant = 50 # multiplies movement time to determine how many steps take place
-        speed_constant = 30 # deg/s of the servo with the greatest change
+        speed_constant = 60 # deg/s of the servo with the greatest change
 
         # print("\nSending joint angles to servo controller:")
         # for i, angle in enumerate(joint_angles_deg):
@@ -221,7 +214,7 @@ class ArmController:
         rectangular(starts, targets, total_time=total_time1, steps = max(1,int(total_time1*step_constant)))
         print("Position Reached")
         self.current_servo_angles_deg = targets
-        if store_position():
+        if store_position(self):
             print("Current Position Saved")
         else:
             print("failed to save current position")

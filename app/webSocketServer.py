@@ -189,3 +189,7 @@ class WebSocketServer:
             data = configTools.map_points_to_data()
             print(data)
             yaml_manager.write(data=data)
+
+        if message == "goToRest":
+            pass
+

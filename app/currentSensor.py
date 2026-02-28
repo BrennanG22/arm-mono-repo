@@ -19,11 +19,11 @@ IS_LINUX = sys.platform.startswith("linux")
 if IS_LINUX:
     import spidev
 
-    logger.info("Starting SPI")
 
 
     class SPIInterface:
         def __init__(self):
+            logger.info("Starting SPI")
             self.spi = spidev.SpiDev()
             self.spi.open(SPI_BUS, SPI_DEVICE)
             self.spi.max_speed_hz = MAX_SPEED_HZ
@@ -36,12 +36,12 @@ if IS_LINUX:
             self.spi.close()
 
 else:
-    logger.warning("Non linux OS detected, starting mock SPI")
+
 
 
     class SPIInterface:
         def __init__(self):
-            pass
+            logger.warning("Non linux OS detected, starting mock SPI")
 
         def xfer2(self, data):
             # Return fake 12-bit ADC response

@@ -71,7 +71,8 @@ class ArmController:
         return None
 
     def load_position(self, filename="angles.json"):
-        """Reads servo angles from a JSON file and updates the robot's state."""
+        """Reads servo angles from a JSON file and updates the robot's state.
+        need to adjust to make first state shutdown state if json DNE"""
         try:
             # Open the file in read mode ('r')
             with open(filename, 'r') as json_file:
@@ -86,29 +87,97 @@ class ArmController:
         # Catch specific errors to prevent crashes if something goes wrong
         except FileNotFoundError:
             print(f"Error: Could not find the file '{filename}'.")
-            return False
+            print('Defaulting to shutdown position.')
+            self.current_servo_angles_deg = [89.99999999999999, 3.5108631313387377, 123.12677409500321, 60.38408907252596, 180, 90.0]
+            self.store_position()
+            self.load_position()
+            return True
         except json.JSONDecodeError:
             print(f"Error: '{filename}' contains invalid JSON data.")
             return False
         except IOError as e:
             print(f"Error reading from '{filename}': {e}")
             return False
+        
+    def store_position(self, filename = 'angles.json'):
+        angles = self.current_servo_angles_deg
+        # Open the file in write mode and save the data
+        try:
+            with open(filename, 'w') as json_file:
+                # indent=4 makes the JSON file readable (pretty-printed)
+                json.dump(angles, json_file, indent=4) 
+            return True
+        except IOError as e:
+            print(f"Error saving to {filename}: {e}")
+            return False
 
     def gripper(self, closed):
         '''
         1 = closed
         0 = open
-        need to incorporate current sensing to this
         '''
+
+        # --- TWEAKABLE CONSTANTS ---
+        ANGLE_OPEN = 0
+        ANGLE_CLOSED = 180
+        STEP_SIZE = 2             # Degrees to move per iteration
+        STEP_DELAY = 0.02         # Seconds to wait between steps to allow physical movement & sensor update
+        CURRENT_THRESHOLD = 500   # Sensor value that defines a "spike" (update to your sensor's metric)
+        BACKOFF_ANGLE = 5         # Degrees to back off if a spike is detected
+
         import time
         from adafruit_servokit import ServoKit
         kit = ServoKit(channels=16)
-        kit.servo[5].set_pulse_width_range(900, 1500)
+        kit.servo[5].set_pulse_width_range(900, 1500) # tune to open and closed positions to a max of (600, 2450)
         kit.servo[5].actuation_range = 180
-        if closed == 1:
-            kit.servo[5].angle=180
+
+        # Determine target angle based on command
+        target_angle = ANGLE_CLOSED if closed == 1 else ANGLE_OPEN
+
+        self.load_position()
+        current_angle = self.current_servo_angles_deg[5]
+
+        # Determine direction of travel (+1 for closing, -1 for opening)
+        if target_angle > current_angle:
+            direction = 1
+        elif target_angle < current_angle:
+            direction = -1
         else:
-            kit.servo[5].angle=0
+            return # Already at the requested position
+        
+        # Move incrementally towards the target
+        while (direction == 1 and current_angle < target_angle) or \
+              (direction == -1 and current_angle > target_angle):
+            
+            # Calculate next angle and clamp it to our min/max limits to prevent errors
+            current_angle += (direction * STEP_SIZE)
+            current_angle = max(ANGLE_OPEN, min(ANGLE_CLOSED, current_angle))
+            
+            # Command the servo
+            kit.servo[5].angle = current_angle
+            
+            # Wait for servo to move and for the async current_sense() to catch up
+            time.sleep(STEP_DELAY)
+            
+            # Check for current spike
+            # (Ensures self.current_value exists before checking it)
+            if hasattr(self, 'current_value') and self.current_value is not None:
+                if self.current_value > CURRENT_THRESHOLD:
+                    print(f"Current spike detected ({self.current_value}). Halting gripper.")
+                    
+                    # OPTION A: Hold current position
+                    # We achieve this by simply breaking out of the loop and leaving the angle as-is.
+                    break 
+                    
+                    # OPTION B: Back off slightly 
+                    # (Commented out as requested)
+                    # current_angle -= (direction * BACKOFF_ANGLE)
+                    # current_angle = max(ANGLE_OPEN, min(ANGLE_CLOSED, current_angle))
+                    # kit.servo[SERVO_CHANNEL].angle = current_angle
+                    # break
+                    
+        print(f"Gripper action finished at angle: {current_angle}")
+
 
     def startup(self):
         '''
@@ -127,8 +196,70 @@ class ArmController:
         #self.send_angles_to_servos([0, 90, 10, 0, 0, 0]) # adjust in lab session
 
 
-    def get_current_position(self):
+    def get_current_position_deg(self):
+        '''
+        gives the current angles of each servo
+        '''
         return self.current_servo_angles_deg
+    
+    def get_current_position_coords(self):
+        '''
+        not functional yet
+        '''
+        angles = self.current_servo_angles_deg
+        base = angles[0]
+        shoulder = angles[1]
+        elbow = angles[2]
+        wrist = angles[3]
+        rads = [
+            0,
+            math.radians(base),
+            math.radians(shoulder),
+            math.radians(elbow),
+            math.radians(wrist),
+            0
+        ]
+        fk_matrix = self.chain.forward_kinematics(rads)
+        print(fk_matrix)
+        
+        x_m = fk_matrix[0, 3]
+        y_m = fk_matrix[1, 3]
+        z_m = fk_matrix[2, 3]
+
+        target_pos_m = [x_m, y_m, z_m]
+        target_dir = self._phi0_orientation_for_position(target_pos_m)
+        orientation_mode = "X"   # constrain X-axis of EE
+
+        solution, info = ik_with_orientation_fallback(
+            self.chain,
+            target_position=target_pos_m,
+            target_orientation=target_dir,
+            orientation_mode=orientation_mode,
+            # initial_position=self.current_joints,
+        )
+
+        base_deg     = math.degrees(solution[1])
+        shoulder_deg = math.degrees(solution[2])
+        elbow_deg    = math.degrees(solution[3])
+        wrist_deg    = math.degrees(solution[4])
+
+        # We have 4 DOFs modeled; add 2 placeholders (wrist_roll, gripper)
+        servo_angles = [
+            base_deg,
+            shoulder_deg,
+            elbow_deg,
+            wrist_deg,
+            0.0,  # wrist_roll placeholder
+            0.0,  # gripper placeholder
+        ]
+
+        print(servo_angles)
+
+        x_cm = round(x_m * 100.0, 2)
+        y_cm = round(y_m * 100.0, 2)
+        z_cm = round(z_m * 100.0, 2)
+
+        return [x_cm, y_cm, z_cm]
 
     def send_angles_to_servos(self, joint_angles_deg):
         """
@@ -188,18 +319,6 @@ class ArmController:
                 time.sleep(wait_time)
             return None
 
-        def store_position(self, filename = 'angles.json'):
-            angles = self.current_servo_angles_deg
-            # Open the file in write mode and save the data
-            try:
-                with open(filename, 'w') as json_file:
-                    # indent=4 makes the JSON file readable (pretty-printed)
-                    json.dump(angles, json_file, indent=4) 
-                return True
-            except IOError as e:
-                print(f"Error saving to {filename}: {e}")
-                return False
-
         self.load_position()
         starts = self.current_servo_angles_deg[:] 
         targets = commanded_angles  
@@ -222,7 +341,7 @@ class ArmController:
         rectangular(starts, targets, total_time=total_time1, steps = max(1,int(total_time1*step_constant)))
         print("Position Reached")
         self.current_servo_angles_deg = targets
-        if store_position(self):
+        if self.store_position():
             print("Current Position Saved")
         else:
             print("failed to save current position")

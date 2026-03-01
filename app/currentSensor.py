@@ -10,9 +10,9 @@ logger = logging.getLogger()
 # Configuration
 SPI_BUS = 0
 SPI_DEVICE = 0  # Use CE0
-MAX_SPEED_HZ = 1_000_00
+MAX_SPEED_HZ = 1000000
 POLL_RATE = 0.1  # Poll rate in seconds
-V_REF = 3.3  # V_ref in volts
+V_REF = 3.4  # V_ref in volts
 
 IS_LINUX = sys.platform.startswith("linux")
 
@@ -99,7 +99,7 @@ class CurrentSensor:
         currents = []
         for i in range(6):
             voltage = (self._read_adc(i) / 4095) * V_REF
-            current = voltage * 0.4
+            current = voltage / 0.4
             currents.append(current)
         return currents
 

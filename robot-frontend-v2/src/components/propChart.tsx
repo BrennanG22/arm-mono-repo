@@ -12,79 +12,42 @@ export default function TelemetryCurrentChart() {
 
   onMount(() => {
 
+    const servoLabels = ["A", "B", "C", "D", "E", "F"];
+
     chart = new Chart(canvas, {
-
       type: "line",
-
       data: {
-
         labels: [],
-
-        datasets: [
-
+        datasets: servoLabels.flatMap(label => [
           {
-            label: "Servo A",
+            label: `Servo ${label}`,
             data: [],
             borderWidth: 2,
             tension: 0.3,
           },
-
           {
-            label: "Servo B",
+            label: `Servo ${label} Avg`,
             data: [],
             borderWidth: 2,
-            tension: 0.3,
-          },
-
-          {
-            label: "Servo C",
-            data: [],
-            borderWidth: 2,
-            tension: 0.3,
-          },
-
-          {
-            label: "Servo D",
-            data: [],
-            borderWidth: 2,
-            tension: 0.3,
-          },
-
-          {
-            label: "Servo E",
-            data: [],
-            borderWidth: 2,
-            tension: 0.3,
-          },
-
-          {
-            label: "Servo F",
-            data: [],
-            borderWidth: 2,
-            tension: 0.3,
-          },
-
-        ]
-
+            borderDash: [6, 6],
+            pointRadius: 0,
+            tension: 0,
+          }
+        ])
       },
-
       options: {
         responsive: true,
         animation: false,
         plugins: {
           legend: {
-            labels: {
-              color: "white"
-            }
+            labels: { color: "white" }
           }
         },
-
         scales: {
           x: {
             ticks: { color: "white" },
             grid: { color: "rgba(255,255,255,0.1)" }
           },
-
           y: {
             ticks: { color: "white" },
             grid: { color: "rgba(255,255,255,0.1)" }
@@ -96,38 +59,54 @@ export default function TelemetryCurrentChart() {
 
   createEffect(() => {
 
-  telemetry.currentMagnitudes?.currentUpdateId;
+    telemetry.currentMagnitudes?.currentUpdateId;
 
-  const history = telemetry.currentMagnitudes?.currentHistory ?? [];
+    const history = telemetry.currentMagnitudes?.currentHistory ?? [];
+    if (!chart) return;
 
-  if (!chart) return;
+    const MAX = 10;
+    const servoCount = 6;
 
-  const MAX = 10;
+    chart.data.labels = Array.from({ length: MAX }, (_, i) => i.toString());
 
-  chart.data.labels = Array.from({ length: MAX }, (_, i) => i.toString());
+    for (let servoIndex = 0; servoIndex < servoCount; servoIndex++) {
 
-  chart.data.datasets.forEach((dataset, servoIndex) => {
+      let data = history.map(point => point[servoIndex] ?? null);
 
-    let data = history.map(point => point[servoIndex] ?? null);
+      if (data.length < MAX) {
+        data = [
+          ...Array(MAX - data.length).fill(null),
+          ...data
+        ];
+      }
 
-    if (data.length < MAX) {
-      data = [
-        ...Array(MAX - data.length).fill(null),
-        ...data
-      ];
+      if (data.length > MAX) {
+        data = data.slice(-MAX);
+      }
+
+      // Compute average (ignore nulls)
+      const validValues = data.filter(v => v !== null) as number[];
+      const avg =
+        validValues.length > 0
+          ? validValues.reduce((a, b) => a + b, 0) / validValues.length
+          : null;
+
+      // Dataset index mapping:
+      // 0 = Servo A
+      // 1 = Servo A Avg
+      // 2 = Servo B
+      // 3 = Servo B Avg
+      const rawDatasetIndex = servoIndex * 2;
+      const avgDatasetIndex = rawDatasetIndex + 1;
+
+      chart.data.datasets[rawDatasetIndex].data = data;
+
+      chart.data.datasets[avgDatasetIndex].data =
+        avg !== null ? Array(MAX).fill(avg) : Array(MAX).fill(null);
     }
 
-    if (data.length > MAX) {
-      data = data.slice(-MAX);
-    }
-
-    dataset.data = data;
-
+    chart.update("none");
   });
-
-  chart.update("none");
-
-});
 
   onCleanup(() => {
     chart.destroy();

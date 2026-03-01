@@ -4,7 +4,6 @@ import { A, useLocation, useNavigate, } from '@solidjs/router';
 import './App.css';
 import "./styles/ui.css";
 import { startTelemetrySocket, stopTelemetrySocket } from './stores/telemetry/telemetrySocket';
-import { MetricContainer } from './components/ui/Containers';
 import { appState } from './stores/appStateStore';
 
 
@@ -20,7 +19,8 @@ const App = (props: any) => {
 
   onMount(() => {
     console.log("Starting telemetry socket...");
-    startTelemetrySocket("ws://192.168.1.71:8765");
+    // startTelemetrySocket(`ws://${window.location.hostname}:8765`);
+    startTelemetrySocket(`ws://192.168.1.71:8765`);
     if (location.pathname === "/") {
       navigate("/monitor", { replace: true });
     }

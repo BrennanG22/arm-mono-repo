@@ -19,8 +19,8 @@ const App = (props: any) => {
 
   onMount(() => {
     console.log("Starting telemetry socket...");
-    startTelemetrySocket(`ws://${window.location.hostname}:8765`);
-    // startTelemetrySocket(`ws://192.168.1.78:8765`);
+    // startTelemetrySocket(`ws://${window.location.hostname}:8765`);
+    startTelemetrySocket(`ws://192.168.1.78:8765`);
     if (location.pathname === "/") {
       navigate("/monitor", { replace: true });
     }

@@ -30,7 +30,6 @@ LOG_FILE = os.path.join(BASE_DIR, "../logs/app.log")
 
 DEFAULT_CONFIG_PATH = "/etc/armController/waypoint_config.yaml"
 
-start = time.monotonic()
 
 
 def main():
@@ -180,18 +179,24 @@ def send_test_current(ws_server):
 # TODO Fix the passing of ws_server
 def current_update_callback(currents: List[float], ws_server):
     # CALL GAVIN CODE HERE
-    ws_server.send_to_all(json.dumps({
-        "message": "currentUpdate",
-        "data": [
-            currents[0],
-            currents[1],
-            currents[2],
-            currents[3],
-            currents[4],
-            currents[5],
-        ]
-    }))
-    pass
+    now = time.monotonic()
+    if not hasattr(current_update_callback, "start"):
+        current_update_callback.start = now
+        return
+    delta = now - current_update_callback.start
+    if delta >= 0.05:
+        current_update_callback.start = now
+        ws_server.send_to_all(json.dumps({
+            "message": "currentUpdate",
+            "data": [
+                currents[0],
+                currents[1],
+                currents[2],
+                currents[3],
+                currents[4],
+                currents[5],
+            ]
+        }))
 
 
 def init_logger(ws_server: webSocketServer):

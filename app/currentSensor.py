@@ -4,22 +4,23 @@ import time
 import random
 import logging
 from typing import List, Callable, Any
+from collections import deque
 
 logger = logging.getLogger()
 
 # Configuration
 SPI_BUS = 0
-SPI_DEVICE = 0  # Use CE0
+SPI_DEVICE = 0
 MAX_SPEED_HZ = 1000000
-POLL_RATE = 0.1  # Poll rate in seconds
-V_REF = 3.4  # V_ref in volts
+V_REF = 3.4
+
+NUM_CHANNELS = 6
+ROLLING_WINDOW = 500
 
 IS_LINUX = sys.platform.startswith("linux")
 
 if IS_LINUX:
     import spidev
-
-
 
     class SPIInterface:
         def __init__(self):
@@ -36,15 +37,11 @@ if IS_LINUX:
             self.spi.close()
 
 else:
-
-
-
     class SPIInterface:
         def __init__(self):
             logger.warning("Non linux OS detected, starting mock SPI")
 
         def xfer2(self, data):
-            # Return fake 12-bit ADC response
             fake_value = random.randint(0, 4095)
             return [0x00, (fake_value >> 8) & 0x0F, fake_value & 0xFF]
 
@@ -54,17 +51,20 @@ else:
 
 class CurrentSensor:
     def __init__(self, callback: Callable[[List[float], Any], None], ws_server):
-        """
-        callback: function that receives current list
-        """
         self.spi = SPIInterface()
         self._callback = callback
-
-        # TODO fix the ws server
         self.ws_server = ws_server
 
         self._running = False
         self._thread = None
+
+        # Rolling buffers (one per channel)
+        self._buffers = [
+            deque(maxlen=ROLLING_WINDOW) for _ in range(NUM_CHANNELS)
+        ]
+
+        # Running sums for fast rolling average
+        self._sums = [0.0] * NUM_CHANNELS
 
     def start(self):
         if self._running:
@@ -91,35 +91,42 @@ class CurrentSensor:
             try:
                 self._callback(currents, self.ws_server)
             except Exception as e:
-                logger.error("Failed to callback in current sensors _poll_loop: %s", str(e))
+                logger.error("Callback failure in _poll_loop: %s", str(e))
 
-            time.sleep(POLL_RATE)
 
     def _get_current_array(self) -> List[float]:
-        currents = []
-        for i in range(6):
-            voltage = (self._read_adc(i) / 4095) * V_REF
-            current = voltage / 0.4
-            currents.append(current)
-        return currents
+        for ch in range(NUM_CHANNELS):
+            adc_value = self._read_adc(ch)
+
+            voltage = (adc_value / 4095.0) * V_REF
+            current = (voltage - V_REF / 2) / 0.4
+
+            # If buffer full, subtract outgoing value from sum
+            if len(self._buffers[ch]) == ROLLING_WINDOW:
+                self._sums[ch] -= self._buffers[ch][0]
+
+            # Append new value
+            self._buffers[ch].append(current)
+            self._sums[ch] += current
+
+        # Compute rolling averages
+        averages = [
+            self._sums[ch] / len(self._buffers[ch])
+            if self._buffers[ch]
+            else 0.0
+            for ch in range(NUM_CHANNELS)
+        ]
+
+        return averages
 
     def _read_adc(self, channel) -> int:
-        """
-        Read 12-bit value from MCP3208 on 'channel' [0-7].
-        Returns an integer between 0 and 4095.
-        """
         if channel < 0 or channel > 7:
             raise ValueError("Channel must be 0-7")
 
-        # MCP3208 control bits:
-        # Structure is 0000011C CCXXXXXX XXXXXXXX
         byte_a = 0b00000110 | (channel >> 2)
         byte_b = (channel << 6) & 0xFF
 
         resp = self.spi.xfer2([byte_a, byte_b, 0x00])
-
-        # Parse the 12-bit response:
-        # resp[1] & 0x0F are top 4 bits
-        # resp[2] are bottom 8 bits
         value = ((resp[1] & 0x0F) << 8) | resp[2]
+
         return value

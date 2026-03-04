@@ -4,7 +4,7 @@ import { sendTelemetryMessage } from "../stores/telemetry/telemetrySocket";
 import { telemetry } from "../stores/telemetryStore";
 import { Select } from "../components/ui/elements/Select";
 import { LargeContainer } from "../components/ui/Containers";
-import { Button } from "../components/ui/elements/Button";
+import { Button, ButtonRed } from "../components/ui/elements/Button";
 
 function MoveButton(props: {
   direction: string;
@@ -133,7 +133,7 @@ function ControlApplet() {
             </div>
             <Switch>
               <Match when={controlMode() === "manual"}>
-                <div>
+                <div class="space-y-1">
                   <label class="block text-sm font-medium text-slate-300 mb-2">
                     Step Size
                   </label>
@@ -148,9 +148,9 @@ function ControlApplet() {
                     onInput={(e) => {
                       const val = parseFloat(e.currentTarget.value);
                       setStepSize(val);
-                      // sendTelemetryMessage("setStepSize", { stepSize: val });
                     }}
                   />
+                  <ButtonRed onclick={() => sendTelemetryMessage("routeToRest")}>Route to rest</ButtonRed>
                 </div>
               </Match>
             </Switch>

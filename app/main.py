@@ -52,7 +52,7 @@ def main():
 
     parser_arg_data.update(lambda d: setattr(d, "use_ik", args.d))
 
-    ws_server = webSocketServer.WebSocketServer(host="localhost")
+    ws_server = webSocketServer.WebSocketServer()
     ws_server.start()
 
     init_logger(ws_server)

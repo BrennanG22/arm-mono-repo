@@ -14,6 +14,8 @@ import helpers
 
 logger = logging.getLogger()
 
+REST_POINT = (20, 0, 0)
+
 
 class WebSocketServer:
     def __init__(self, host="0.0.0.0", port=8765):
@@ -115,7 +117,10 @@ class WebSocketServer:
     def websocket_message_handler(self, socket_message):
         parsed_message = json.loads(socket_message)
         message = parsed_message["message"]
-        data = parsed_message["data"]
+        try:
+            data = parsed_message["data"]
+        except:
+            data = ""
         telemetry = arm_telemetry.get()
         pather_data = arm_path_data.get()
         pather = get_arm_pather()
@@ -190,6 +195,5 @@ class WebSocketServer:
             print(data)
             yaml_manager.write(data=data)
 
-        if message == "goToRest":
-            pass
-
+        if message == "routeToRest":
+            pather.execute_path(pather.get_route_to_point(REST_POINT, steps=0))

@@ -4,6 +4,7 @@ websockets
 pyyaml
 adafruit-circuitpython-servokit
 setuptools
+spidev
 contourpy==1.3.3
 cycler==0.12.1
 fonttools==4.61.1

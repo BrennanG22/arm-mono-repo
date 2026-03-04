@@ -50,7 +50,8 @@ class ArmController:
         sets current servo angles when code is first ran
 
         """
-        self.current_value = 0
+        self.current_value = 0.0
+        self._current_buffer = []
         self.chain = ROT3U_chain
         # One joint value per link in the chain (OriginLink + 5 URDFLinks)
         #self.current_joints = np.zeros(len(self.chain.links), dtype=float)
@@ -67,12 +68,20 @@ class ArmController:
 
 
     def current_sense(self, current):
-        self.current_value = current
+        AVG = 10
+        self._current_buffer.append(current)
+
+        if len(self._current_buffer) >= AVG:
+            self._current_buffer.pop(0)
+
+        average_current = sum(self._current_buffer) / len(self._current_buffer)
+        self.current_value = average_current
+
         return None
 
     def load_position(self, filename="angles.json"):
         """Reads servo angles from a JSON file and updates the robot's state.
-        if JSON file DNE, creates it with shutdown coordinates"""
+        need to adjust to make first state shutdown state if json DNE"""
         try:
             # Open the file in read mode ('r')
             with open(filename, 'r') as json_file:
@@ -545,4 +554,3 @@ if __name__ == "__main__":
     #     if again != 'y':
     #         print('done')
     #         break
-

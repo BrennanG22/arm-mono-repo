@@ -12,6 +12,7 @@ export interface Telemetry {
   currentPoint?: [number, number, number];
   activeState?: string;
   activeMode?: string;
+  sortingMode?: string;
 }
 
 export const [telemetry, setTelemetry] = createStore<Telemetry>({

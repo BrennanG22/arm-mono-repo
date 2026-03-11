@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Tuple, List, Optional, TypeVar, Generic, Callable, Dict
 import copy
+import sortingObjectQueue
 
 T = TypeVar("T")
 
@@ -10,6 +11,10 @@ T = TypeVar("T")
 class ActiveMode(Enum):
     MANUAL = "manual"
     SORTING = "sorting"
+
+class SortingType(Enum):
+    COLOUR = "colour"
+    SHAPE = "shape"
 
 
 @dataclass
@@ -45,7 +50,8 @@ class _SortingData:
     sorting_categories: List[str] = None
     object_position: Tuple[float, float, float] = None
     planned_paths: Dict[str, List[Tuple[float, float, float]]] = field(default_factory=dict)
-    active_classification: str = None
+    active_classification: sortingObjectQueue.ObjectData = None
+    sort_type: SortingType = SortingType.COLOUR
 
 
 @dataclass

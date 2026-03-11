@@ -9,7 +9,7 @@ DELAY_READY = 1  # seconds before sending "Ready"
 
 # Lists of possible colours and shapes
 COLOURS = ["blue", "orange"]
-SHAPES = ["circle", "square", "triangle", "rectangle", "oval", "star", "heart", "diamond", "pentagon", "hexagon"]
+SHAPES = ["square", "triangle"]
 
 
 def make_random_point(index):
@@ -20,7 +20,7 @@ def make_random_point(index):
         "index": index,
         "colour": colour,
         "shape": shape,
-        "Object Ready": "Not Ready"
+        "Object Ready": False
     }
 
 
@@ -40,7 +40,7 @@ def main():
             print("Sent:", point)
 
             time.sleep(DELAY_READY)
-            point["Object Ready"] = "Ready"
+            point["Object Ready"] = True
             s.sendall(json.dumps(point).encode("utf-8") + b"\n")
             print("Sent:", point)
 

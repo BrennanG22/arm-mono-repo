@@ -10,6 +10,7 @@ sortingPoints:
     z: 0
   categories:
   - blue
+  - square
 - name: test
   points:
     x: 203
@@ -17,4 +18,4 @@ sortingPoints:
     z: 0.5
   categories:
   - orange
-  - blue
+  - triangle

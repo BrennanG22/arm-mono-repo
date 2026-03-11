@@ -7,7 +7,7 @@ import websockets
 import json
 
 from armPather import get_arm_pather
-from dataStores import arm_telemetry, ActiveMode, arm_path_data, arm_boundary_data, SortingPoint
+from dataStores import arm_telemetry, ActiveMode, arm_path_data, arm_boundary_data, arm_sorting_data, SortingPoint, SortingType
 import configTools
 from configTools import yaml_manager
 import helpers
@@ -197,3 +197,11 @@ class WebSocketServer:
 
         if message == "routeToRest":
             pather.execute_path(pather.get_route_to_point(REST_POINT, steps=0))
+
+        if message == "setSortingMode":
+            data: str = data
+            mode = SortingType(data["mode"])
+            if mode == SortingType.COLOUR:
+                arm_sorting_data.update(lambda d: setattr(d, "sort_type", SortingType.COLOUR))
+            else:
+                arm_sorting_data.update(lambda d: setattr(d, "sort_type", SortingType.SHAPE))

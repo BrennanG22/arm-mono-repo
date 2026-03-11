@@ -34,20 +34,35 @@ function MoveButton(props: {
 function ControlApplet() {
   const [controlMode, setControlMode] = createSignal("");
   const [stepSize, setStepSize] = createSignal(0.1);
+  const [sortingMode, setSortingMode] = createSignal("colour");
 
-  let initialized = false;
+  let controlInitialized = false;
+  let sortingInitialized = false;
 
   createEffect(
     on(
       () => telemetry.activeMode,
       (mode) => {
-        if (!initialized && mode !== undefined) {
+        if (!controlInitialized && mode !== undefined) {
           setControlMode(mode);
-          initialized = true;
+          controlInitialized = true;
         }
       }
     )
   );
+
+  createEffect(
+    on(
+      () => telemetry.sortingMode,
+      (mode) => {
+        if (!sortingInitialized && mode !== undefined) {
+          setSortingMode(mode);
+          sortingInitialized = true;
+        }
+      }
+    )
+  );
+
 
   return (
     <div class="grid grid-cols-2 grid-rows-2 gap-4 h-full w-full p-4 bg-gray-100 rounded-2xl">
@@ -151,6 +166,21 @@ function ControlApplet() {
                     }}
                   />
                   <ButtonRed onclick={() => sendTelemetryMessage("routeToRest")}>Route to rest</ButtonRed>
+                </div>
+              </Match>
+              <Match when={controlMode() === "sorting"}>
+                <div class="space-y-1">
+                  <Select
+                    value={sortingMode}
+                    options={[
+                      { value: "colour", label: "Colour Sorting" },
+                      { value: "shape", label: "Shape Sorting" }
+                    ]}
+                    onChange={(mode) => {
+                      setSortingMode(mode);
+                      sendTelemetryMessage("setSortingMode", { mode });
+                    }}
+                  />
                 </div>
               </Match>
             </Switch>

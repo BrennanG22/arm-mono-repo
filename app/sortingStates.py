@@ -66,8 +66,8 @@ class _WaitForPickup:
     def wait_for_pickup_update(self):
         data = sorting_queue.pop_if_ready()
         if data:
-            dataStores.arm_sorting_data.update(lambda d: setattr(d, "active_classification", data.colour))
-            logging.info("Object detected with class: %s", data.colour)
+            dataStores.arm_sorting_data.update(lambda d: setattr(d, "active_classification", data))
+            logging.info("Object detected")
             self.machine.goto_state("lift_up")
 
 
@@ -109,7 +109,14 @@ class _MoveToSort:
     def move_to_sort_start(self):
         current_sorting_data = dataStores.arm_sorting_data.get()
         current_boundary_data = dataStores.arm_boundary_data.get()
-        classification = current_sorting_data.active_classification
+
+        classified_object = current_sorting_data.active_classification
+        classification = (
+            classified_object.colour
+            if current_sorting_data.sort_type == dataStores.SortingType.COLOUR
+            else classified_object.shape
+        )
+
         points = current_boundary_data.sorting_points
 
         for name, sp in points.items():

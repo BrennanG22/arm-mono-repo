@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger()
 
+
 @dataclass
 class ObjectData:
     index: int
@@ -27,13 +28,12 @@ class SortingObjectQueue:
             is_ready=message["Object Ready"]
         )
         logger.info("Colour: %s", data.colour)
-        
+
         if index not in self._items:
             self._queue.append(index)
         self._items[index] = data
 
     def pop_if_ready(self) -> ObjectData:
-        # logger.debug("Queue: %s", self._queue )
         if not self._queue:
             return None
 

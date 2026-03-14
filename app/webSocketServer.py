@@ -14,7 +14,7 @@ import helpers
 
 logger = logging.getLogger()
 
-REST_POINT = (20, 0, 0)
+REST_POINT = (30, 0, 10)
 
 
 class WebSocketServer:

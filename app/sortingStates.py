@@ -84,7 +84,7 @@ class _LiftUp:
         self.pather.controller.set_grip_state(1)
         current_data = dataStores.arm_telemetry.get()
         x, y, z = current_data.position
-        self.lift_up_point = (x, y, z + 1)
+        self.lift_up_point = (x, y, z + 10)
         path = self.pather.get_route_to_point(self.lift_up_point)
         self.pather.execute_path(path)
 

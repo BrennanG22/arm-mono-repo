@@ -167,7 +167,6 @@ class WebSocketServer:
             logger.info(f"Received new conveyor point: {helpers.log_point(pick_up_point)}")
             self.send_to_all(json_str)
             data = configTools.map_points_to_data()
-            print(data)
             yaml_manager.write(data=data)
 
         if message == "setSortingPoints":
@@ -192,7 +191,6 @@ class WebSocketServer:
             logger.debug("Setting sorting points as: " + json_str)
             self.send_to_all(json_str)
             data = configTools.map_points_to_data()
-            print(data)
             yaml_manager.write(data=data)
 
         if message == "routeToRest":

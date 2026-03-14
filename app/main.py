@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import queue
-import random
 import threading
 import time
 from typing import List
@@ -17,9 +16,11 @@ import webSocketServer
 import webSocketLogHandler
 import currentSensor
 from dataStores import arm_telemetry, ActiveMode, parser_arg_data
-from armPather import init_arm_pather
+from armPather import init_arm_pather, get_arm_pather
 from configTools import yaml_manager
 from sortingObjectQueue import sorting_queue
+
+GRIPPER_INDEX = 0
 
 INET_data_queue = queue.Queue()
 webSocket_points_data_queue = queue.Queue()
@@ -29,7 +30,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(BASE_DIR, "../logs/app.log")
 
 DEFAULT_CONFIG_PATH = "/etc/armController/waypoint_config.yaml"
-
 
 
 def main():
@@ -155,36 +155,15 @@ def start_socket_server():
                                      lambda msg: INET_data_queue.put(msg))
 
 
-def send_test_current(ws_server):
-    now = time.monotonic()
-    if not hasattr(send_test_current, "start"):
-        send_test_current.start = now
-        return
-    delta = now - send_test_current.start
-    if delta >= 0.2:
-        send_test_current.start = now
-        ws_server.send_to_all(json.dumps({
-            "message": "currentUpdate",
-            "data": [
-                random.uniform(0, 2),
-                random.uniform(0, 2),
-                random.uniform(0, 2),
-                random.uniform(0, 2),
-                random.uniform(0, 2),
-                random.uniform(0, 2),
-            ]
-        }))
-
-
 # TODO Fix the passing of ws_server
 def current_update_callback(currents: List[float], ws_server):
-    # CALL GAVIN CODE HERE
+    get_arm_pather().controller.armController.current_sense(currents[GRIPPER_INDEX])
     now = time.monotonic()
     if not hasattr(current_update_callback, "start"):
         current_update_callback.start = now
         return
     delta = now - current_update_callback.start
-    if delta >= 0.05:
+    if delta >= 0.1:
         current_update_callback.start = now
         ws_server.send_to_all(json.dumps({
             "message": "currentUpdate",
@@ -203,7 +182,7 @@ def init_logger(ws_server: webSocketServer):
     # Ensure log directory exists
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
-    # Optional: remove old log file
+    # Remove old log file
     if os.path.exists(LOG_FILE):
         os.remove(LOG_FILE)
 

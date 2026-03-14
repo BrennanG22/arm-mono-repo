@@ -25,14 +25,7 @@ export default function TelemetryCurrentChart() {
             borderWidth: 2,
             tension: 0.3,
           },
-          {
-            label: `Servo ${label} Avg`,
-            data: [],
-            borderWidth: 2,
-            borderDash: [6, 6],
-            pointRadius: 0,
-            tension: 0,
-          }
+
         ])
       },
       options: {
@@ -49,6 +42,8 @@ export default function TelemetryCurrentChart() {
             grid: { color: "rgba(255,255,255,0.1)" }
           },
           y: {
+            suggestedMin: 0,
+            suggestedMax: 3,
             ticks: { color: "white" },
             grid: { color: "rgba(255,255,255,0.1)" }
           }
@@ -84,25 +79,9 @@ export default function TelemetryCurrentChart() {
         data = data.slice(-MAX);
       }
 
-      // Compute average (ignore nulls)
-      const validValues = data.filter(v => v !== null) as number[];
-      const avg =
-        validValues.length > 0
-          ? validValues.reduce((a, b) => a + b, 0) / validValues.length
-          : null;
 
-      // Dataset index mapping:
-      // 0 = Servo A
-      // 1 = Servo A Avg
-      // 2 = Servo B
-      // 3 = Servo B Avg
-      const rawDatasetIndex = servoIndex * 2;
-      const avgDatasetIndex = rawDatasetIndex + 1;
 
-      chart.data.datasets[rawDatasetIndex].data = data;
-
-      chart.data.datasets[avgDatasetIndex].data =
-        avg !== null ? Array(MAX).fill(avg) : Array(MAX).fill(null);
+      chart.data.datasets[servoIndex].data = data;
     }
 
     chart.update("none");

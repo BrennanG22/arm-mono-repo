@@ -6,10 +6,12 @@ import { configuration, setConfiguration } from "../stores/configurationStore";
 import { Button, ButtonRed } from "../components/ui/elements/Button";
 import { sendTelemetryMessage } from "../stores/telemetry/telemetrySocket";
 import { produce } from "solid-js/store";
+import { PageBlock } from "../components/ui/PageBlock";
 
 function ConfigureApplet() {
 
   const [pointType, setPointType] = createSignal("sorting");
+  const [activeTab, setActiveTab] = createSignal("points");
 
 
 
@@ -146,6 +148,23 @@ function ConfigureApplet() {
     setPickUpButtonsActive(false);
   }
 
+  const [calibrationOpen, setCalibrationOpen] = createSignal(false);
+  const [calibrationStage, setCalibrationStage] = createSignal(0);
+
+  // 5 second timer to allow calibration, no need for callback
+  let timer: number;
+
+  createEffect(() => {
+    if (calibrationStage() === 1) {
+      timer = setTimeout(() => {
+        setCalibrationStage(2);
+      }, 5000);
+    }
+  });
+
+  function cancelCalibration() {
+    clearTimeout(timer);
+  }
 
   return (
     <div class="h-full p-4 bg-gray-100 rounded-2xl">
@@ -155,82 +174,151 @@ function ConfigureApplet() {
           Configure Robotic Arm
         </h2>
 
-        <Select
-          value={pointType}
-          onChange={(mode) => setPointType(mode)}
-          options={[
-            { value: "sorting", label: "Sorting Points" },
-            { value: "conveyor", label: "Conveyor Point" },
-          ]}
-        />
+        <div class="flex space-x-2 mb-4">
+          <button
+            class={`px-4 py-2 rounded-lg ${activeTab() === "points" ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}`}
+            onClick={() => setActiveTab("points")}
+          >
+            Saved Points
+          </button>
 
+          <button
+            class={`px-4 py-2 rounded-lg ${activeTab() === "sensor" ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}`}
+            onClick={() => setActiveTab("sensor")}
+          >
+            Current Sensor
+          </button>
+        </div>
         <Switch>
-          <Match when={pointType() === "sorting"}>
-            <div class="flex flex-col flex-1 w-full">
-              <div class="pt-4 flex space-x-1.5">
-                <div class="flex-6/8">
-                  <Select
-                    value={selectedSortingPoint}
-                    onChange={(value) => setSelectedSortingPoint(value)}
-                    options={Object.keys(sortingPoints()).map(key => ({ value: key, label: key }))}
-                    placeholder="Select a sorting point or make a new point..."
-                  />
+
+          <Match when={activeTab() === "points"}>
+            <Select
+              value={pointType}
+              onChange={(mode) => setPointType(mode)}
+              options={[
+                { value: "sorting", label: "Sorting Points" },
+                { value: "conveyor", label: "Conveyor Point" },
+              ]}
+            />
+
+            <Switch>
+              <Match when={pointType() === "sorting"}>
+                <div class="flex flex-col flex-1 w-full">
+                  <div class="pt-4 flex space-x-1.5">
+                    <div class="flex-6/8">
+                      <Select
+                        value={selectedSortingPoint}
+                        onChange={(value) => setSelectedSortingPoint(value)}
+                        options={Object.keys(sortingPoints()).map(key => ({ value: key, label: key }))}
+                        placeholder="Select a sorting point or make a new point..."
+                      />
+                    </div>
+                    <ButtonRed class="aspect-square" onclick={() => deleteSortingPoint()}>
+                      -
+                    </ButtonRed>
+                    <Button class="aspect-square" onClick={() => addNewSortingPoint()}>
+                      +
+                    </Button>
+                  </div>
+                  <Show when={selectedSortingPoint()}>
+                    <h1 class="text-xl text-white font-semibold mt-4">Name</h1>
+                    <Input type="text" placeholder="Point name" containerClass="w-full" value={tempSortingPointName()} onBeforeInput={(e) => { validateName(e) }} onInput={(e) => setTempSortingPointName(e.target.value)} />
+                    <h1 class="text-xl text-white font-semibold  mt-2">Point</h1>
+                    <div class="flex space-x-2 pt-4">
+                      <Input type="number" placeholder="X" containerClass="flex-1" value={tempSortingPoint().point[0]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [Number(e.target.value), tempSortingPoint().point[1], tempSortingPoint().point[2]] })} label="X Point" />
+                      <Input type="number" placeholder="Y" containerClass="flex-1" value={tempSortingPoint().point[1]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [tempSortingPoint().point[0], Number(e.target.value), tempSortingPoint().point[2]] })} label="Y Point" />
+                      <Input type="number" placeholder="Z" containerClass="flex-1" value={tempSortingPoint().point[2]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [tempSortingPoint().point[0], tempSortingPoint().point[1], Number(e.target.value)] })} label="Z Point" />
+                    </div>
+
+                    <h1 class="text-xl text-white font-semibold  mt-4">Categories</h1>
+                    <textarea class="text-white" value={tempSortingPoint().categories.join('\n')} onBeforeInput={(e) => { validateCategory(e) }} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), categories: e.target.value.split('\n').filter(c => c.trim() !== '') })}>
+
+                    </textarea>
+                    <div class="mt-auto self-end flex space-x-2">
+                      <ButtonRed disabled={!pickUpButtonsActive()} onClick={() => resetPickUpPoint()}>
+                        Reset Point
+                      </ButtonRed>
+                      <Button disabled={false} onClick={() => saveSortingPoint()}>
+                        Save Point
+                      </Button>
+                    </div>
+                  </Show>
                 </div>
-                <ButtonRed class="aspect-square" onclick={() => deleteSortingPoint()}>
-                  -
-                </ButtonRed>
-                <Button class="aspect-square" onClick={() => addNewSortingPoint()}>
-                  +
-                </Button>
-              </div>
-              <Show when={selectedSortingPoint()}>
-                <h1 class="text-xl text-white font-semibold mt-4">Name</h1>
-                <Input type="text" placeholder="Point name" containerClass="w-full" value={tempSortingPointName()} onBeforeInput={(e) => { validateName(e) }} onInput={(e) => setTempSortingPointName(e.target.value)} />
-                <h1 class="text-xl text-white font-semibold  mt-2">Point</h1>
-                <div class="flex space-x-2 pt-4">
-                  <Input type="number" placeholder="X" containerClass="flex-1" value={tempSortingPoint().point[0]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [Number(e.target.value), tempSortingPoint().point[1], tempSortingPoint().point[2]] })} label="X Point" />
-                  <Input type="number" placeholder="Y" containerClass="flex-1" value={tempSortingPoint().point[1]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [tempSortingPoint().point[0], Number(e.target.value), tempSortingPoint().point[2]] })} label="Y Point" />
-                  <Input type="number" placeholder="Z" containerClass="flex-1" value={tempSortingPoint().point[2]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [tempSortingPoint().point[0], tempSortingPoint().point[1], Number(e.target.value)] })} label="Z Point" />
+              </Match>
+
+              <Match when={pointType() === "conveyor"}>
+
+                <div class="flex flex-col flex-1">
+
+                  <div class="flex space-x-2 pt-4">
+                    <Input type="number" placeholder="X" containerClass="flex-1" value={tempPoint()[0]} onChange={(e) => setTempPoint([Number(e.target.value), tempPoint()[1], tempPoint()[2]])} label="X Point" />
+                    <Input type="number" placeholder="Y" containerClass="flex-1" value={tempPoint()[1]} onChange={(e) => setTempPoint([tempPoint()[0], Number(e.target.value), tempPoint()[2]])} label="Y Point" />
+                    <Input type="number" placeholder="Z" containerClass="flex-1" value={tempPoint()[2]} onChange={(e) => setTempPoint([tempPoint()[0], tempPoint()[1], Number(e.target.value)])} label="Z Point" />
+                  </div>
+
+                  <div class="mt-auto self-end flex space-x-2">
+                    <ButtonRed disabled={!pickUpButtonsActive()} onClick={() => resetPickUpPoint()}>
+                      Reset Configuration
+                    </ButtonRed>
+                    <Button disabled={!pickUpButtonsActive()} onClick={() => savePickUpPoint()}>
+                      Save Configuration
+                    </Button>
+                  </div>
                 </div>
 
-                <h1 class="text-xl text-white font-semibold  mt-4">Categories</h1>
-                <textarea class="text-white" value={tempSortingPoint().categories.join('\n')} onBeforeInput={(e) => { validateCategory(e) }} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), categories: e.target.value.split('\n').filter(c => c.trim() !== '') })}>
+              </Match>
 
-                </textarea>
-                <div class="mt-auto self-end flex space-x-2">
-                  <ButtonRed disabled={!pickUpButtonsActive()} onClick={() => resetPickUpPoint()}>
-                    Reset Point
-                  </ButtonRed>
-                  <Button disabled={false} onClick={() => saveSortingPoint()}>
-                    Save Point
-                  </Button>
-                </div>
-              </Show>
+            </Switch>
+
+
+          </Match>
+          <Match when={activeTab() === "sensor"}>
+            <PageBlock open={calibrationOpen} onClose={() => {setCalibrationOpen(false); cancelCalibration();}} class="w-1/2 h-1/3 text-white">
+              <Switch>
+
+                <Match when={calibrationStage() === 0}>
+                  <div class="flex flex-col h-full">
+                    <p>Follow the steps below to begin calibration of the current sensors<br />
+                      1. Power off the robotic arms power supply<br />
+                      2. Disconnect the cable harness from the arm and leave it unplugged<br />
+                      3. Power on the robotic arms power supply<br />
+                      4. When the above is complete, click the start button below</p>
+                    <div class="flex space-x-1 mt-auto">
+                      <Button onClick={() => setCalibrationStage(1)}>
+                        Start Calibration
+                      </Button>
+                      <ButtonRed onClick={() => setCalibrationOpen(false)}>
+                        Cancel
+                      </ButtonRed>
+                    </div>
+                  </div>
+                </Match>
+
+                <Match when={calibrationStage() === 1}>
+                  <div class="flex h-full flex-col items-center justify-center">
+                    <p>Calibration in progress... Please wait</p>
+                  </div>
+                </Match>
+
+                <Match when={calibrationStage() === 2}>
+                  <div class="flex h-full flex-col items-center justify-center">
+                    <p>Calibration complete</p>
+                    <ButtonRed onClick={() => setCalibrationOpen(false)}>
+                      Close
+                    </ButtonRed>
+                  </div>
+                </Match>
+
+              </Switch>
+            </PageBlock>
+            <h1 class="text-xl text-white font-semibold mb-4">Current Sensor Configuration</h1>
+            <div class="text-lg text-slate-300">
+              <Input type="number" placeholder="Reference Voltage" />
+              <Button onClick={() => { setCalibrationOpen(true); setCalibrationStage(0) }}>
+                Begin Calibration
+              </Button>
             </div>
           </Match>
-
-          <Match when={pointType() === "conveyor"}>
-
-            <div class="flex flex-col flex-1">
-
-              <div class="flex space-x-2 pt-4">
-                <Input type="number" placeholder="X" containerClass="flex-1" value={tempPoint()[0]} onChange={(e) => setTempPoint([Number(e.target.value), tempPoint()[1], tempPoint()[2]])} label="X Point" />
-                <Input type="number" placeholder="Y" containerClass="flex-1" value={tempPoint()[1]} onChange={(e) => setTempPoint([tempPoint()[0], Number(e.target.value), tempPoint()[2]])} label="Y Point" />
-                <Input type="number" placeholder="Z" containerClass="flex-1" value={tempPoint()[2]} onChange={(e) => setTempPoint([tempPoint()[0], tempPoint()[1], Number(e.target.value)])} label="Z Point" />
-              </div>
-
-              <div class="mt-auto self-end flex space-x-2">
-                <ButtonRed disabled={!pickUpButtonsActive()} onClick={() => resetPickUpPoint()}>
-                  Reset Configuration
-                </ButtonRed>
-                <Button disabled={!pickUpButtonsActive()} onClick={() => savePickUpPoint()}>
-                  Save Configuration
-                </Button>
-              </div>
-            </div>
-
-          </Match>
-
         </Switch>
 
       </LargeContainer>

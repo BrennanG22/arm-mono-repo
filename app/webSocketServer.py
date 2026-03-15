@@ -18,13 +18,16 @@ REST_POINT = (30, 0, 10)
 
 
 class WebSocketServer:
-    def __init__(self, host="0.0.0.0", port=8765):
+    def __init__(self, host="0.0.0.0", port=8080, relay_enabled=False, relay_url="ws://arm.brennang.com/ws/robot"):
         self.host = host
         self.port = port
         self.clients = set()
         self.thread = None
         self.running = False
-        self.loop = None  # Store the event loop reference
+        self.loop = None  
+        self.relay_enabled = relay_enabled
+        self.relay_url = relay_url
+        self.relay_ws = None
 
     def start(self):
         if self.thread and self.thread.is_alive():
@@ -43,7 +46,22 @@ class WebSocketServer:
         async with websockets.serve(self._handler, self.host, self.port):
             self.running = True
             logger.info(f"WebSocket server started on ws://{self.host}:{self.port}")
+            if self.relay_enabled:
+                asyncio.create_task(self._connect_to_relay())
             await asyncio.Future()
+
+    async def _connect_to_relay(self):
+        while self.relay_enabled:
+            try:
+                async with websockets.connect(self.relay_url) as ws:
+                    self.relay_ws = ws
+                    logger.info("Connected to relay at " + self.relay_url)
+                    async for message in ws:
+                        self.websocket_message_handler(message)
+            except Exception as e:
+                logger.warning(f"Relay connection lost: {e}. Reconnecting in 3s...")
+                self.relay_ws = None
+                await asyncio.sleep(3)
 
     async def _handler(self, websocket):
         self.clients.add(websocket)
@@ -63,15 +81,12 @@ class WebSocketServer:
             return
 
         async def send():
-            if self.clients:
-                tasks = []
-                for client in list(self.clients):
-                    try:
-                        tasks.append(client.send(message))
-                    except:
-                        logger.error("Failed to send websocket message")
-                if tasks:
-                    await asyncio.gather(*tasks, return_exceptions=True)
+            targets = list(self.clients)
+            if self.relay_enabled and self.relay_ws:
+                targets.append(self.relay_ws)
+            tasks = [client.send(message) for client in targets]
+            if tasks:
+                await asyncio.gather(*tasks, return_exceptions=True)
 
         asyncio.run_coroutine_threadsafe(send(), self.loop)
 

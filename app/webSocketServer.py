@@ -140,6 +140,9 @@ class WebSocketServer:
         pather_data = arm_path_data.get()
         pather = get_arm_pather()
 
+        if message == "initialConnect":
+            self._initial_connect_handler()
+
         if (message == "move") and (telemetry.active_mode == ActiveMode.MANUAL) and (pather_data is not None):
             if data["direction"] == "x+":
                 updated_point = (telemetry.position[0] + data["step"], telemetry.position[1], telemetry.position[2])

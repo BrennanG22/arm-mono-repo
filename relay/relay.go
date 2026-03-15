@@ -64,6 +64,14 @@ func browserHandler(w http.ResponseWriter, r *http.Request) {
 		conn.Close()
 	}()
 
+	mu.Lock()
+	hasRobots := len(robotClients) > 0
+	mu.Unlock()
+
+	if hasRobots {
+		broadcast([]byte(`{"message":"initialConnect"}`), robotClients)
+	}
+
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {

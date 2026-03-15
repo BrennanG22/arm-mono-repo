@@ -1,6 +1,5 @@
 import sys
 import threading
-import time
 import random
 import logging
 from typing import List, Callable, Any
@@ -21,6 +20,7 @@ IS_LINUX = sys.platform.startswith("linux")
 
 if IS_LINUX:
     import spidev
+
 
     class SPIInterface:
         def __init__(self):
@@ -92,7 +92,6 @@ class CurrentSensor:
                 self._callback(currents, self.ws_server)
             except Exception as e:
                 logger.error("Callback failure in _poll_loop: %s", str(e))
-
 
     def _get_current_array(self) -> List[float]:
         for ch in range(NUM_CHANNELS):

@@ -9,3 +9,4 @@ todo
 
 relay/relay
 *.exe
+/app/__pycache__/*

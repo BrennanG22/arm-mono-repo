@@ -51,7 +51,7 @@ def main():
 
     parser_arg_data.update(lambda d: setattr(d, "use_ik", args.d))
 
-    ws_server = webSocketServer.WebSocketServer(relay_enabled=True)
+    ws_server = webSocketServer.WebSocketServer(relay_enabled=True, port=8765)
     ws_server.start()
 
     init_logger(ws_server)

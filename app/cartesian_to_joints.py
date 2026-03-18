@@ -75,7 +75,7 @@ class ArmController:
 
 
     def current_sense(self, current):
-        AVG = 10
+        AVG = 2
         self._current_buffer.append(current)
 
         if len(self._current_buffer) >= AVG:
@@ -127,7 +127,7 @@ class ArmController:
             print(f"Error saving to {filename}: {e}")
             return False
 
-    def gripper_v2(self, closed):
+    def gripper(self, closed):
         '''
         1 = closed
         0 = open
@@ -138,13 +138,13 @@ class ArmController:
         ANGLE_CLOSED = 180
         STEP_SIZE = 2             # Degrees to move per iteration
         STEP_DELAY = 0.02         # Seconds to wait between steps to allow physical movement & sensor update
-        CURRENT_THRESHOLD = 500   # Sensor value that defines a "spike" (update to your sensor's metric)
-        BACKOFF_ANGLE = 5         # Degrees to back off if a spike is detected
+        CURRENT_THRESHOLD = 900/1000   # Sensor value that defines a "spike" (update to your sensor's metric)
+        BACKOFF_ANGLE = 10         # Degrees to back off if a spike is detected
 
         import time
         from adafruit_servokit import ServoKit
         kit = ServoKit(channels=16)
-        GRIPPER = self.servo_assignment('GRIPPER')
+        GRIPPER = self.servo_assignment['GRIPPER']
         kit.servo[GRIPPER].set_pulse_width_range(900, 1500) # tune to open and closed positions to a max of (600, 2450)
         kit.servo[GRIPPER].actuation_range = 180
 
@@ -179,28 +179,28 @@ class ArmController:
             # Check for current spike
             # (Ensures self.current_value exists before checking it)
             if hasattr(self, 'current_value') and self.current_value is not None:
-                if self.current_value > CURRENT_THRESHOLD:
+                if self.current_value > CURRENT_THRESHOLD and direction == 1:
                     print(f"Current spike detected ({self.current_value}). Halting gripper.")
                     
                     # OPTION A: Hold current position
                     # We achieve this by simply breaking out of the loop and leaving the angle as-is.
-                    break 
+                    #break 
                     
                     # OPTION B: Back off slightly 
                     # (Commented out as requested)
-                    # current_angle -= (direction * BACKOFF_ANGLE)
-                    # current_angle = max(ANGLE_OPEN, min(ANGLE_CLOSED, current_angle))
-                    # kit.servo[SERVO_CHANNEL].angle = current_angle
-                    # break
+                    current_angle -= (direction * BACKOFF_ANGLE)
+                    current_angle = max(ANGLE_OPEN, min(ANGLE_CLOSED, current_angle))
+                    kit.servo[GRIPPER].angle = current_angle
+                    break
                     
         print(f"Gripper action finished at angle: {current_angle}")
 
 
-    def gripper(self, closed):
+    def gripper_old(self, closed):
         import time
         from adafruit_servokit import ServoKit
         kit = ServoKit(channels=16)
-        GRIPPER = self.servo_assignment('GRIPPER')
+        GRIPPER = self.servo_assignment['GRIPPER']
         kit.servo[GRIPPER].set_pulse_width_range(900, 1500)
         kit.servo[GRIPPER].actuation_range = 180
         if closed == 1:
@@ -307,18 +307,18 @@ class ArmController:
         import time
         from adafruit_servokit import ServoKit
         kit = ServoKit(channels=16) # 16 channels on the PWM driver
-        BASE = self.servo_assignment('BASE')
-        SHOULDER = self.servo_assignment('SHOULDER')
-        ELBOW = self.servo_assignment('ELBOW')
-        WRIST = self.servo_assignment('WRIST')
-        WRIST_ROTATE = self.servo_assignment('WRIST_ROTATE')
+        BASE = self.servo_assignment['BASE']
+        SHOULDER = self.servo_assignment['SHOULDER']
+        ELBOW = self.servo_assignment['ELBOW']
+        WRIST = self.servo_assignment['WRIST']
+        WRIST_ROTATE = self.servo_assignment['WRIST_ROTATE']
 
         # calibration to limits of joints
         kit.servo[BASE].set_pulse_width_range(580, 2450) # adjust min and max pulse widths
         kit.servo[SHOULDER].set_pulse_width_range(540, 2460)
         kit.servo[ELBOW].set_pulse_width_range(530, 2450)
-        kit.servo[WRIST].set_pulse_width_range(630, 2480)
-        kit.servo[WRIST_ROTATE].set_pulse_width_range(580, 2440)
+        kit.servo[WRIST].set_pulse_width_range(630, 2480) 
+        kit.servo[WRIST_ROTATE].set_pulse_width_range(680, 2440) #580
         #kit.servo[5].set_pulse_width_range(900, 1500)
 
         kit.servo[BASE].actuation_range = 180 # adjust maximum actuation to 120

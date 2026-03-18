@@ -19,9 +19,7 @@ const App = (props: any) => {
 
   onMount(() => {
     console.log("Starting telemetry socket...");
-    const WS_URL = import.meta.env.DEV
-      ? 'ws://arm.brennang.com/ws/browser'
-      : `wss://${window.location.hostname}/ws/browser`;
+    const WS_URL = `wss://${window.location.hostname}:8765`;
     startTelemetrySocket(WS_URL);
     if (location.pathname === "/") {
       navigate("/monitor", { replace: true });

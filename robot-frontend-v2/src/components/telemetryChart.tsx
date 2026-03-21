@@ -48,6 +48,7 @@ export default function TelemetryChart(props: TelemetryChartProps) {
       options: {
         responsive: true,
         animation: false,
+        maintainAspectRatio: false,
         scales: {
           y: { beginAtZero: true },
         },

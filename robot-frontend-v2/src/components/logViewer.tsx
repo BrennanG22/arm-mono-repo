@@ -17,20 +17,18 @@ export default function LogViewer(props: LogViewerProps) {
   return (
     <div
       ref={container}
-      class="h-full overflow-y-auto bg-slate-900 rounded-xl p-2 font-mono text-sm"
+      class="h-full overflow-y-auto bg-slate-900 rounded-xl p-2 md:p-3 font-mono text-xs md:text-sm"
     >
       <For each={logs}>
         {(log) => (
           <Show when={log.levelNumber >= props.logLevel()}>
-            < div class={getColourClass(log.levelName)}>
+            <div class={`${getColourClass(log.levelName)} wrap-break-word`}>
               {log.message}
             </div>
           </Show>
-        )
-        }
-      </For >
-      {logs.length}
-    </div >
+        )}
+      </For>
+    </div>
   );
 }
 

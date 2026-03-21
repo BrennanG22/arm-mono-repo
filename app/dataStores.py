@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Tuple, List, Optional, TypeVar, Generic, Callable, Dict
 import copy
-import sortingObjectQueue
+from app.arm.sorting import sortingObjectQueue
 
 T = TypeVar("T")
 

@@ -3,10 +3,10 @@ import logging
 import queue
 import threading
 
-import webSocketServer
-import webServer
-import socketServer
-from app import arm
+from . import webSocketServer
+from . import webServer
+from . import socketServer
+from app.arm.armContext import ArmContext
 
 logger = logging.getLogger()
 
@@ -16,12 +16,11 @@ class NetworkingManager:
 
     INET_data_queue = queue.Queue()
 
-    arm_manager: arm.armManager.ArmManager = None
-
     def __init__(self):
         pass
 
     def initialize(self,
+                   arm_context: ArmContext,
                    ws_host="0.0.0.0",
                    ws_port=8080,
                    relay_enabled="true",
@@ -29,6 +28,7 @@ class NetworkingManager:
 
         logger.info(f"Starting web socket server on %s %d", ws_host, ws_port)
         self.web_socket_server = webSocketServer.WebSocketServer(
+            arm_context,
             host=ws_host,
             port=ws_port,
             relay_enabled=relay_enabled,
@@ -43,7 +43,7 @@ class NetworkingManager:
         socket_thread = threading.Thread(target=self._start_socket_server, daemon=True)
         socket_thread.start()
 
-    def network_loop_update(self):
+    def main_loop(self):
         pass
 
     def send_ws_message(self, message: str, data: any):

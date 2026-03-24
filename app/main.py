@@ -3,22 +3,17 @@ import json
 import logging
 import os
 import queue
-import threading
 import time
-from typing import List
 
 import configTools
 import dataStores
-
 import networking.networkingManager
-
+import arm.armManager
+from app.arm.armPather import init_arm_pather
 from app.arm.sorting import sortingStates
-from app.networking import webSocketServer, webSocketLogHandler, webServer, socketServer
-from app.arm import currentSensor
-from dataStores import arm_telemetry, ActiveMode, parser_arg_data
-from app.arm.armPather import init_arm_pather, get_arm_pather
+from app.networking import webSocketServer, webSocketLogHandler
 from configTools import yaml_manager
-from app.arm.sorting.sortingObjectQueue import sorting_queue
+from dataStores import arm_telemetry, ActiveMode, parser_arg_data
 
 GRIPPER_INDEX = 0
 
@@ -56,10 +51,6 @@ def main():
     init_logger(networking_manager.web_socket_server)
     logger = logging.getLogger()
 
-    web_socket_previous_point = [0, 0, 0]
-    prev_path = None
-    prev_state = None
-
     logger.info("Starting main")
 
     yaml_manager.initialize(config_path)
@@ -68,18 +59,22 @@ def main():
 
     init_arm_pather()
 
-    sorting_state_machine = sortingStates.init()
+
     if arm_telemetry.get().active_mode == ActiveMode.SORTING:
         sorting_state_machine.goto_state("move_to_pickup")
-
-
-
 
     # TEMP FIX: Part of temp fix below
     mode = arm_telemetry.get().active_mode
 
+    # New Code
+    arm_manager = arm.armManager.ArmManager()
+    arm_manager.initialize(networking_manager)
+
     while True:
         time.sleep(0.001)
+        arm_manager.main_loop()
+        networking_manager.main_loop()
+
         # send_test_current(ws_server)
         # TEMP FIX: Remedy issue of transition from manual to sorting
         if mode == ActiveMode.SORTING and arm_telemetry.get().active_mode == ActiveMode.MANUAL:
@@ -133,17 +128,6 @@ def main():
                 web_socket_previous_point = pos
                 ws_server.send_to_all(json_str)
 
-        if arm_telemetry.get().active_mode is dataStores.ActiveMode.SORTING:
-            if sorting_state_machine.current_state is None:
-                sorting_state_machine.goto_state("move_to_pickup")
-            sorting_state_machine.update()
-        elif arm_telemetry.get().active_mode is dataStores.ActiveMode.MANUAL:
-            pass
-        pass
-
-
-
-# TODO Fix the passing of ws_server
 
 
 

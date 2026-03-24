@@ -6,11 +6,10 @@ from typing import Dict
 import websockets
 import json
 
-from app.arm.armPather import get_arm_pather
-from dataStores import arm_telemetry, ActiveMode, arm_path_data, arm_boundary_data, arm_sorting_data, SortingPoint, SortingType
-import configTools
-from configTools import yaml_manager
-import helpers
+import app.configTools
+from app.configTools import yaml_manager
+from app.arm.armContext import ArmContext
+import app.helpers
 
 logger = logging.getLogger()
 
@@ -18,7 +17,7 @@ REST_POINT = (30, 0, 10)
 
 
 class WebSocketServer:
-    def __init__(self, host="0.0.0.0", port=8080, relay_enabled=False, relay_url="ws://arm.brennang.com/ws/robot"):
+    def __init__(self, arm_context: ArmContext, host="0.0.0.0", port=8080, relay_enabled=False, relay_url="ws://arm.brennang.com/ws/robot"):
         self.host = host
         self.port = port
         self.clients = set()
@@ -28,6 +27,8 @@ class WebSocketServer:
         self.relay_enabled = relay_enabled
         self.relay_url = relay_url
         self.relay_ws = None
+
+        self.arm_context = arm_context
 
     def start(self):
         if self.thread and self.thread.is_alive():
@@ -91,7 +92,7 @@ class WebSocketServer:
         asyncio.run_coroutine_threadsafe(send(), self.loop)
 
     def _initial_connect_handler(self):
-        telemetry = arm_telemetry.get()
+        telemetry = self.arm_context.data.telemetry.get()
         pos = telemetry.position
 
         if pos is not None:
@@ -108,7 +109,7 @@ class WebSocketServer:
         })
         self.send_to_all(json_str)
 
-        boundary = arm_boundary_data.get()
+        boundary = self.arm_context.data.boundary.get()
         pick_up_point = boundary.conveyor_pickup_point
         json_str = json.dumps({
             "message": "pickUpPoint",

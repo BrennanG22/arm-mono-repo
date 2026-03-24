@@ -1,3 +1,4 @@
+import dataclasses
 import threading
 from dataclasses import dataclass, field
 from enum import Enum
@@ -11,6 +12,7 @@ T = TypeVar("T")
 class ActiveMode(Enum):
     MANUAL = "manual"
     SORTING = "sorting"
+
 
 class SortingType(Enum):
     COLOUR = "colour"
@@ -32,6 +34,7 @@ class _ArmTelemetryData:
     position: Tuple[float, float, float] = (20, 0, 20)
     requested_position: Optional[Tuple[float, float, float]] = None
     active_mode: ActiveMode = ActiveMode.MANUAL
+
 
 
 @dataclass
@@ -73,9 +76,6 @@ class DataStore(Generic[T]):
         with self._lock:
             updater(self._data)
 
-
-arm_telemetry = DataStore(_ArmTelemetryData())
-arm_path_data = DataStore(_ArmPathData())
-arm_sorting_data = DataStore(_SortingData())
-arm_boundary_data = DataStore(_BoundaryData())
-parser_arg_data = DataStore(_ParserArguments())
+    def set(self, **kwargs) -> None:
+        with self._lock:
+            self._data = dataclasses.replace(self._data, **kwargs)

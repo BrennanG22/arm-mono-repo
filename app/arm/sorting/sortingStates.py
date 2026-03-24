@@ -3,8 +3,8 @@ from typing import Tuple
 
 import numpy as np
 
-from app.arm import armStateMachine
-from app.arm.armPather import get_arm_pather, ArmPather
+from app.arm.sorting import armStateMachine
+from app.arm import armPather, armData
 from app.arm.sorting.sortingObjectQueue import sorting_queue
 import dataStores
 
@@ -31,11 +31,11 @@ def init():
 class _MoveToPickup:
     pick_up_point: Tuple[float, float, float] = None
     machine: armStateMachine.ArmStateMachine
-    pather: ArmPather
+    pather: armPather.ArmPather
 
-    def __init__(self, machine):
+    def __init__(self, machine, arm_context: armData.ArmContext):
         self.machine = machine
-        self.pather = get_arm_pather()
+        self.pather = arm_context.arm_pather
 
     def move_to_pickup_start(self):
         self.pather.controller.set_grip_state(0)
@@ -55,7 +55,7 @@ class _MoveToPickup:
 
 
 class _WaitForPickup:
-    def __init__(self, machine):
+    def __init__(self, machine, arm_context):
         self.machine = machine
         self.pather = get_arm_pather()
 
@@ -76,7 +76,7 @@ class _LiftUp:
     machine: armStateMachine.ArmStateMachine
     pather: ArmPather
 
-    def __init__(self, machine):
+    def __init__(self, machine, arm_context):
         self.machine = machine
         self.pather = get_arm_pather()
 

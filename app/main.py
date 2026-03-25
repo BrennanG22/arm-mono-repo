@@ -3,26 +3,20 @@ import json
 import logging
 import os
 import queue
-import threading
 import time
-from typing import List
+from typing import Callable
 
 import configTools
 import dataStores
-import socketServer
-import sortingStates
-import webServer
-import webSocketServer
-import webSocketLogHandler
-import currentSensor
-from dataStores import arm_telemetry, ActiveMode, parser_arg_data
-from armPather import init_arm_pather, get_arm_pather
+import networking.networkingManager
+import arm.armManager
+# from app.arm.armPather import init_arm_pather
+from app.arm.sorting import sortingStates
+from app.networking import webSocketServer, webSocketLogHandler
 from configTools import yaml_manager
-from sortingObjectQueue import sorting_queue
 
 GRIPPER_INDEX = 0
 
-INET_data_queue = queue.Queue()
 webSocket_points_data_queue = queue.Queue()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -49,136 +43,73 @@ def main():
     args = parser.parse_args()
     config_path = args.config
 
-    parser_arg_data.update(lambda d: setattr(d, "use_ik", args.d))
+    networking_manager = networking.networkingManager.NetworkingManager()
+    network_context = networking_manager.get_context()
 
-    ws_server = webSocketServer.WebSocketServer(relay_enabled=True, port=8765)
+    arm_manager = arm.armManager.ArmManager()
+    arm_context = arm_manager.get_context()
+
+    ws_server = webSocketServer.WebSocketServer(relay_enabled=True)
     ws_server.start()
 
-    init_logger(ws_server)
-    logger = logging.getLogger()
+    arm_context.data.parser_args.set(use_ik=args.d)
 
-    web_socket_previous_point = [0, 0, 0]
-    prev_path = None
-    prev_state = None
+    init_logger(networking_manager.send_ws_message)
+    logger = logging.getLogger()
 
     logger.info("Starting main")
 
-    yaml_manager.initialize(config_path)
+    yaml_manager.initialize(config_path, arm_context)
     data = yaml_manager.load()
-    configTools.map_points_file(data, True)
+    yaml_manager.map_points_file(data, True)
 
-    logger.info("Starting socket server")
-    socket_thread = threading.Thread(target=start_socket_server, daemon=True)
-    socket_thread.start()
+    networking_manager.start(arm_context)
+    arm_manager.start(network_context)
 
-    logger.info("Starting web server")
-    webServer.start_api_thread()
+    # init_arm_pather()
 
-    init_arm_pather()
-
-    sorting_state_machine = sortingStates.init()
-    if arm_telemetry.get().active_mode == ActiveMode.SORTING:
-        sorting_state_machine.goto_state("move_to_pickup")
-
-    current_sensor = currentSensor.CurrentSensor(current_update_callback, ws_server)
-    current_sensor.start()
-
-    # TEMP FIX: Part of temp fix below
-    mode = arm_telemetry.get().active_mode
+    # if arm_telemetry.get().active_mode == ActiveMode.SORTING:
+    #     sorting_state_machine.goto_state("move_to_pickup")
+    #
+    # # TEMP FIX: Part of temp fix below
+    # mode = arm_telemetry.get().active_mode
 
     while True:
         time.sleep(0.001)
-        # send_test_current(ws_server)
-        # TEMP FIX: Remedy issue of transition from manual to sorting
-        if mode == ActiveMode.SORTING and arm_telemetry.get().active_mode == ActiveMode.MANUAL:
-            sorting_state_machine.current_state = None
-        mode = arm_telemetry.get().active_mode
+        arm_manager.main_loop()
+        networking_manager.main_loop()
 
-        try:
-            ws_points = dataStores.arm_path_data.get().active_path
-            ##TEMP FIX
-            if ws_points is not None and ws_points != prev_path:
-                data_serializable = [[float(x), float(y), float(z)] for x, y, z in ws_points]
-                json_point_data = json.dumps(data_serializable)
-                json_str = "{\"message\": \"path\", \"data\": " + json_point_data + "}"
-                ws_server.send_to_all(json_str)
-                prev_path = ws_points
-            elif ws_points != prev_path:
-                json_str = "{\"message\": \"path\", \"data\": []}"
-                prev_path = []
-                ws_server.send_to_all(json_str)
-
-            sorting_data = dataStores.arm_sorting_data.get()
-            state = "Manual"
-            if sorting_data.active_state is not None and mode == ActiveMode.SORTING:
-                state = sorting_data.active_state
-
-            if prev_state != state:
-                state_str = "{\"message\": \"state\", \"data\": \"" + state + "\"}"
-                ws_server.send_to_all(state_str)
-                prev_state = state
-
-        except queue.Empty:
-            pass
-
-        try:
-            msg = INET_data_queue.get_nowait()
-            logger.debug(f"Received INET socket message: {msg}")
-            cls = msg["colour"]
-            dataStores.arm_sorting_data.update(lambda d: setattr(d, "active_classification", cls))
-            sorting_queue.update_from_message(msg)
-        except queue.Empty:
-            pass
-
-        if web_socket_previous_point != arm_telemetry.get().position:
-            pos = arm_telemetry.get().position
-
-            if pos is not None:
-                json_str = json.dumps({
-                    "message": "currentPoint",
-                    "data": [float(pos[0]), float(pos[1]), float(pos[2])]
-                })
-                web_socket_previous_point = pos
-                ws_server.send_to_all(json_str)
-
-        if arm_telemetry.get().active_mode is dataStores.ActiveMode.SORTING:
-            if sorting_state_machine.current_state is None:
-                sorting_state_machine.goto_state("move_to_pickup")
-            sorting_state_machine.update()
-        elif arm_telemetry.get().active_mode is dataStores.ActiveMode.MANUAL:
-            pass
-        pass
+        # # TEMP FIX: Remedy issue of transition from manual to sorting
+        # if mode == ActiveMode.SORTING and arm_telemetry.get().active_mode == ActiveMode.MANUAL:
+        #     sorting_state_machine.current_state = None
+        # mode = arm_telemetry.get().active_mode
+        #
+        # try:
+        #
+        #
+        #     sorting_data = dataStores.arm_sorting_data.get()
+        #     state = "Manual"
+        #     if sorting_data.active_state is not None and mode == ActiveMode.SORTING:
+        #         state = sorting_data.active_state
+        #
+        #     if prev_state != state:
+        #         state_str = "{\"message\": \"state\", \"data\": \"" + state + "\"}"
+        #         ws_server.send_to_all(state_str)
+        #         prev_state = state
+        #
+        # except queue.Empty:
+        #     pass
+        #
+        # try:
+        #
+        #     # cls = msg["colour"]
+        #     # dataStores.arm_sorting_data.update(lambda d: setattr(d, "active_classification", cls))
+        #     # sorting_queue.update_from_message(msg)
+        # except queue.Empty:
+        #     pass
 
 
-def start_socket_server():
-    socketServer.listen_for_messages(socketServer.create_server(),
-                                     lambda msg: INET_data_queue.put(msg))
-
-
-# TODO Fix the passing of ws_server
-def current_update_callback(currents: List[float], ws_server):
-    get_arm_pather().controller.armController.current_sense(currents[GRIPPER_INDEX])
-    now = time.monotonic()
-    if not hasattr(current_update_callback, "start"):
-        current_update_callback.start = now
-        return
-    delta = now - current_update_callback.start
-    if delta >= 0.1:
-        current_update_callback.start = now
-        ws_server.send_to_all(json.dumps({
-            "message": "currentUpdate",
-            "data": [
-                currents[0],
-                currents[1],
-                currents[2],
-                currents[3],
-                currents[4],
-                currents[5],
-            ]
-        }))
-
-
-def init_logger(ws_server: webSocketServer):
+def init_logger(send_to_all: Callable):
     # Ensure log directory exists
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
@@ -204,7 +135,7 @@ def init_logger(ws_server: webSocketServer):
     file_handler.setFormatter(formatter)
 
     # Web socket handler
-    ws_handler = webSocketLogHandler.WebSocketHandler(ws_server.send_to_all)
+    ws_handler = webSocketLogHandler.WebSocketHandler(send_to_all)
     ws_handler.setLevel(logging.DEBUG)
     ws_handler.setFormatter(formatter)
 

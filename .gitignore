@@ -4,8 +4,9 @@
 *.deb
 /venv/
 /.venv/
-/__pycache__/
+**/__pycache__/
 todo
 
 relay/relay
 *.exe
+/app/__pycache__

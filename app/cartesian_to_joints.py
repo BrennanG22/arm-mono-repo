@@ -546,37 +546,126 @@ class ArmController:
 
 
 if __name__ == "__main__":
-    # Simple manual test
     import time
-    arm = ArmController()
-    # Move to 10 cm forward, 0 cm lateral, 20 cm up, tool horizontal
-    #arm.move_to_position(10, 10, 20, phi_deg=90)
-    # arm.send_angles_to_servos([-90,0,0,0,0,0])
-    # time.sleep(2)
+    from adafruit_servokit import ServoKit
 
-    # start up
-    #arm.startup()
+    print("Initializing Servo Calibration Tool...")
+    kit = ServoKit(channels=16)
 
-    # come to a safe rest
-    arm.send_angles_to_servos([0,-90,-40,45,0,0])
-    # while True:
-    #     angles = []
-    #     print("enter coordinates")
-    #     while len(angles) <4:
-    #         try:
-    #             value = float(input(f"Angle {len(angles)+1}: "))
-    #             if -90 <= value <= 90:
-    #                 angles.append(value)
-    #             else:
-    #                 print('nope')
-    #         except ValueError:
-    #             print('nope')
+    # Dictionary mapping channel numbers to names
+    servo_names = {
+        0: 'BASE',
+        1: 'SHOULDER',
+        2: 'ELBOW',
+        3: 'WRIST',
+        4: 'WRIST_ROTATE',
+        5: 'GRIPPER'
+    }
 
-    #     angles.append(0)
-    #     angles.append(0)
-    #     arm.send_angles_to_servos(angles)
+    # Starting pulse widths based on your existing configuration
+    pulse_widths = {
+        0: [580, 2450],
+        1: [540, 2460],
+        2: [530, 2450],
+        3: [630, 2480],
+        4: [680, 2440],
+        5: [900, 1500]
+    }
 
-    #     again=input('again? y/n').lower()
-    #     if again != 'y':
-    #         print('done')
-    #         break
+    # Ensure all servos are set to 180 degree actuation range initially
+    for ch in servo_names.keys():
+        kit.servo[ch].actuation_range = 180
+        kit.servo[ch].set_pulse_width_range(pulse_widths[ch][0], pulse_widths[ch][1])
+
+    def move_gradually(servo_obj, target_angle):
+        """Moves the servo to the target angle in small steps to prevent violent jerks."""
+        current = servo_obj.angle
+        if current is None:
+            current = 90 # Assume middle if unknown
+            servo_obj.angle = current
+            time.sleep(0.5)
+            
+        step = 2 if target_angle > current else -2
+        for angle in range(int(current), int(target_angle), step):
+            servo_obj.angle = angle
+            time.sleep(0.01)
+        servo_obj.angle = target_angle
+        time.sleep(0.2)
+
+    while True:
+        print("\n" + "="*40)
+        print(" SERVO CALIBRATION MENU")
+        print("="*40)
+        for ch, name in servo_names.items():
+            print(f" [{ch}] - {name}")
+        print(" [Q] - Quit and generate code")
+        
+        choice = input("\nSelect a servo channel to tune: ").strip().upper()
+        
+        if choice == 'Q':
+            break
+            
+        try:
+            ch = int(choice)
+            if ch not in servo_names:
+                raise ValueError
+        except ValueError:
+            print("Invalid selection. Please enter a valid number or 'Q'.")
+            continue
+
+        name = servo_names[ch]
+        
+        while True:
+            min_pw, max_pw = pulse_widths[ch]
+            kit.servo[ch].set_pulse_width_range(min_pw, max_pw)
+            
+            print(f"\n--- Tuning {name} (Channel {ch}) ---")
+            print(f"Current limits: Min = {min_pw}, Max = {max_pw}")
+            print(" [1] Test/Tune MINIMUM limit (0 degrees)")
+            print(" [2] Test/Tune MAXIMUM limit (180 degrees)")
+            print(" [3] Test CENTER (90 degrees)")
+            print(" [B] Back to main menu")
+            
+            sub_choice = input("Select action: ").strip().upper()
+            
+            if sub_choice == 'B':
+                # Return to a safe middle position before switching servos
+                move_gradually(kit.servo[ch], 90)
+                break
+                
+            elif sub_choice == '1':
+                print(f"Moving {name} to 0 degrees...")
+                move_gradually(kit.servo[ch], 0)
+                print("If the servo is buzzing, stalling, or hasn't reached the physical limit, adjust the MIN pulse width.")
+                new_val = input(f"Enter new MIN pulse width (or press Enter to keep {min_pw}): ").strip()
+                if new_val.isdigit():
+                    pulse_widths[ch][0] = int(new_val)
+                    print(f"Updated MIN to {new_val}. The servo will twitch to reflect the new limit.")
+                    
+            elif sub_choice == '2':
+                print(f"Moving {name} to 180 degrees...")
+                move_gradually(kit.servo[ch], 180)
+                print("If the servo is buzzing, stalling, or hasn't reached the physical limit, adjust the MAX pulse width.")
+                new_val = input(f"Enter new MAX pulse width (or press Enter to keep {max_pw}): ").strip()
+                if new_val.isdigit():
+                    pulse_widths[ch][1] = int(new_val)
+                    print(f"Updated MAX to {new_val}. The servo will twitch to reflect the new limit.")
+                    
+            elif sub_choice == '3':
+                print(f"Moving {name} to 90 degrees...")
+                move_gradually(kit.servo[ch], 90)
+
+    # Generate the final code output
+    print("\n\n" + "="*50)
+    print(" CALIBRATION COMPLETE")
+    print("="*50)
+    print("Copy and paste these lines into your `send_angles_to_servos` and `gripper` functions:\n")
+    
+    for ch, (min_pw, max_pw) in pulse_widths.items():
+        name = servo_names[ch]
+        if name == 'GRIPPER':
+            print(f"kit.servo[GRIPPER].set_pulse_width_range({min_pw}, {max_pw})")
+        else:
+            print(f"kit.servo[{name}].set_pulse_width_range({min_pw}, {max_pw})")
+    
+    print("\nExiting calibration tool.")

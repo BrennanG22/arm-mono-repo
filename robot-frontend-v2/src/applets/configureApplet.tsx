@@ -129,7 +129,7 @@ function ConfigureApplet() {
 
   return (
     <div class="h-full p-2 sm:p-4 bg-gray-100 rounded-2xl overflow-y-auto">
-      <LargeContainer class="h-full flex flex-col max-w-3xl mx-auto w-full">
+      <LargeContainer class="h-full flex flex-col mx-auto w-full">
 
         <h2 class="text-xl sm:text-2xl text-white font-semibold mb-4">
           Configure Robotic Arm

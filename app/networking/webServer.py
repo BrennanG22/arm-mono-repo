@@ -22,11 +22,12 @@ app.mount(
 
 
 @app.get("/")
-@app.get("/monitor")
-@app.get("/configure")
-@app.get("/control")
-@app.get("/update")
-async def serve_spa():
+async def serve_root():
+    return FileResponse(DIST_DIR / "index.html")
+
+
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
     return FileResponse(DIST_DIR / "index.html")
 
 

@@ -7,9 +7,11 @@ import websockets
 import json
 
 import app.configTools
+from app import helpers, configTools
 from app.configTools import yaml_manager
 from app.arm.armContext import ArmContext
 import app.helpers
+from app.dataStores import ActiveMode, SortingPoint, SortingType
 
 logger = logging.getLogger()
 
@@ -137,9 +139,9 @@ class WebSocketServer:
             data = parsed_message["data"]
         except:
             data = ""
-        telemetry = arm_telemetry.get()
-        pather_data = arm_path_data.get()
-        pather = get_arm_pather()
+        telemetry = self.arm_context.data.telemetry.get()
+        pather_data = self.arm_context.data.path.get()
+        pather = self.arm_context.arm_pather
 
         if message == "initialConnect":
             self._initial_connect_handler()
@@ -168,16 +170,17 @@ class WebSocketServer:
             logger.info("Received move command: Direction = %s, Step = %s", data["direction"], data["step"])
 
         if message == "setControlMode":
-            if data["mode"] == "manual":
-                arm_telemetry.update(lambda d: setattr(d, "active_mode", ActiveMode.MANUAL))
-            else:
-                arm_telemetry.update(lambda d: setattr(d, "active_mode", ActiveMode.SORTING))
+            # if data["mode"] == "manual":
+            #     self.arm_context.data.telemetry.update(lambda d: setattr(d, "active_mode", ActiveMode.MANUAL))
+            # else:
+            #     self.arm_context.data.telemetry.update(lambda d: setattr(d, "active_mode", ActiveMode.SORTING))
+            self.arm_context.set_control_mode(data["mode"])
             logger.info("Received control mode change to: " + str(data["mode"]))
 
         if message == "setPickUpPoint":
             # TODO Update this to save to the YAML file
-            arm_boundary_data.update(lambda d: setattr(d, "conveyor_pickup_point", data["point"]))
-            boundary = arm_boundary_data.get()
+            self.arm_context.data.boundary.update(lambda d: setattr(d, "conveyor_pickup_point", data["point"]))
+            boundary = self.arm_context.data.boundary.get()
             pick_up_point = boundary.conveyor_pickup_point
             json_str = json.dumps({
                 "message": "pickUpPoint",
@@ -185,7 +188,7 @@ class WebSocketServer:
             })
             logger.info(f"Received new conveyor point: {helpers.log_point(pick_up_point)}")
             self.send_to_all(json_str)
-            data = configTools.map_points_to_data()
+            data = yaml_manager.map_points_to_data()
             yaml_manager.write(data=data)
 
         if message == "setSortingPoints":
@@ -194,9 +197,9 @@ class WebSocketServer:
             for key, p in data.items():
                 sp: SortingPoint = SortingPoint(point=p["point"], categories=p["categories"])
                 new_points[key] = sp
-            arm_boundary_data.update(lambda d: setattr(d, "sorting_points", new_points))
+            self.arm_context.data.boundary.update(lambda d: setattr(d, "sorting_points", new_points))
             logger.info(f"Revived new sorting points: {new_points}")
-            sorting_points = arm_boundary_data.get().sorting_points
+            sorting_points = self.arm_context.data.boundary.get().sorting_points
             json_str = json.dumps({
                 "message": "sortingPoints",
                 "data": {
@@ -209,7 +212,7 @@ class WebSocketServer:
             })
             logger.debug("Setting sorting points as: " + json_str)
             self.send_to_all(json_str)
-            data = configTools.map_points_to_data()
+            data = yaml_manager.map_points_to_data()
             yaml_manager.write(data=data)
 
         if message == "routeToRest":
@@ -219,6 +222,6 @@ class WebSocketServer:
             data: str = data
             mode = SortingType(data["mode"])
             if mode == SortingType.COLOUR:
-                arm_sorting_data.update(lambda d: setattr(d, "sort_type", SortingType.COLOUR))
+                self.arm_context.data.sorting.update(lambda d: setattr(d, "sort_type", SortingType.COLOUR))
             else:
-                arm_sorting_data.update(lambda d: setattr(d, "sort_type", SortingType.SHAPE))
+                self.arm_context.data.sorting.update(lambda d: setattr(d, "sort_type", SortingType.SHAPE))

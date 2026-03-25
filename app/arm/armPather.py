@@ -47,17 +47,17 @@ class ArmPather:
 arm_pather: Optional["ArmPather"] = None
 
 
-def init_arm_pather() -> None:
-    global arm_pather
-    if arm_pather is not None:
-        logger.critical("ArmPather was reinitialized while already started")
-        raise RuntimeError("ArmPather already initialized")
-
-    arm_pather = ArmPather()
-
-
-def get_arm_pather() -> ArmPather:
-    if arm_pather is None:
-        logger.critical("ArmPather was accessed before it was initialized")
-        raise RuntimeError("ArmPather not initialized yet")
-    return arm_pather
+# def init_arm_pather() -> None:
+#     global arm_pather
+#     if arm_pather is not None:
+#         logger.critical("ArmPather was reinitialized while already started")
+#         raise RuntimeError("ArmPather already initialized")
+#
+#     arm_pather = ArmPather()
+#
+#
+# def get_arm_pather() -> ArmPather:
+#     if arm_pather is None:
+#         logger.critical("ArmPather was accessed before it was initialized")
+#         raise RuntimeError("ArmPather not initialized yet")
+#     return arm_pather

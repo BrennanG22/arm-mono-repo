@@ -22,7 +22,7 @@ const App = (props: any) => {
   onMount(() => {
     console.log("Starting telemetry socket...");
     const WS_URL = import.meta.env.DEV
-      ? 'ws://arm.brennang.com/ws/browser'
+      ? 'ws://127.0.0.1:8080/ws/browser'
       : `wss://${window.location.hostname}/ws/browser`;
     startTelemetrySocket(WS_URL);
     if (location.pathname === "/") {

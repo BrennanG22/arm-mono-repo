@@ -51,5 +51,3 @@ class SortingObjectQueue:
         print("Queue: " + str(self._queue))
         print("Dict: " + str(self._items))
 
-
-sorting_queue: SortingObjectQueue = SortingObjectQueue()

@@ -4,6 +4,7 @@ import os.path
 import shutil
 import tempfile
 from typing import List, Tuple, Dict, Any
+from app.arm import armContext
 
 import yaml
 
@@ -20,14 +21,16 @@ class YAMLManager:
     _initialized = False
     _path = None
     _mtime = None
+    _arm_context: armContext.ArmContext
 
     def __init__(self):
         pass
 
-    def initialize(self, path):
+    def initialize(self, path, arm_context: armContext.ArmContext):
         self._initialized = True
         self._path = path
         self._mtime = None
+        self._arm_context = arm_context
 
     def load(self):
         if not self._initialized:
@@ -73,61 +76,60 @@ class YAMLManager:
             return True
         return False
 
+    def map_points_file(self, data, update_data_store=False) -> List[WayPoint]:
+        points: List[WayPoint] = []
+        p: WayPoint = WayPoint()
+        sp: dataStores.SortingPoint = dataStores.SortingPoint()
 
-def map_points_file(data, update_data_store=False) -> List[WayPoint]:
-    points: List[WayPoint] = []
-    p: WayPoint = WayPoint()
-    sp: dataStores.SortingPoint = dataStores.SortingPoint()
-
-    d = data["pickUpPoint"]
-    p.point = (d["x"], d["y"], d["z"])
-    points.append(p)
-    if update_data_store:
-        dataStores.arm_boundary_data.update(lambda store: setattr(store, "conveyor_pickup_point", p.point))
-
-    d = data["sortingPoints"]
-    for i in d:
-        sp = dataStores.SortingPoint()
-        name = i["name"]
-        sp.point = (i["points"]["x"], i["points"]["y"], i["points"]["z"])
-        sp.categories = i["categories"]
-        points.append(sp.point)
+        d = data["pickUpPoint"]
+        p.point = (d["x"], d["y"], d["z"])
+        points.append(p)
         if update_data_store:
-            dataStores.arm_boundary_data.update(lambda store: store.sorting_points.__setitem__(name, sp))
+            # dataStores.arm_boundary_data.update(lambda store: setattr(store, "conveyor_pickup_point", p.point))
+            self._arm_context.data.boundary.set(conveyor_pickup_point=p.point)
 
-    logging.getLogger().debug("Loaded the following points: " + str(points))
-    return points
+        d = data["sortingPoints"]
+        for i in d:
+            sp = dataStores.SortingPoint()
+            name = i["name"]
+            sp.point = (i["points"]["x"], i["points"]["y"], i["points"]["z"])
+            sp.categories = i["categories"]
+            points.append(sp.point)
+            if update_data_store:
+                self._arm_context.data.boundary.update(lambda store: store.sorting_points.__setitem__(name, sp))
 
+        logging.getLogger().debug("Loaded the following points: " + str(points))
+        return points
 
-def map_points_to_data() -> Dict[str, Any]:
+    def map_points_to_data(self) -> Dict[str, Any]:
 
-    data = {}
-    boundary = dataStores.arm_boundary_data.get()
-    pickup_point = boundary.conveyor_pickup_point
-    sorting_points = boundary.sorting_points
+        data = {}
+        boundary = self._arm_context.data.boundary.get()
+        pickup_point = boundary.conveyor_pickup_point
+        sorting_points = boundary.sorting_points
 
-    data["pickUpPoint"] = {
-        "x": pickup_point[0],
-        "y": pickup_point[1],
-        "z": pickup_point[2],
-    }
+        data["pickUpPoint"] = {
+            "x": pickup_point[0],
+            "y": pickup_point[1],
+            "z": pickup_point[2],
+        }
 
-    sorting_list = []
+        sorting_list = []
 
-    for name, sp in sorting_points.items():
-        sorting_list.append({
-            "name": name,
-            "points": {
-                "x": sp.point[0],
-                "y": sp.point[1],
-                "z": sp.point[2],
-            },
-            "categories": sp.categories,
-        })
+        for name, sp in sorting_points.items():
+            sorting_list.append({
+                "name": name,
+                "points": {
+                    "x": sp.point[0],
+                    "y": sp.point[1],
+                    "z": sp.point[2],
+                },
+                "categories": sp.categories,
+            })
 
-    data["sortingPoints"] = sorting_list
+        data["sortingPoints"] = sorting_list
 
-    return data
+        return data
 
 
 yaml_manager = YAMLManager()

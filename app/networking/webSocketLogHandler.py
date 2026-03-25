@@ -15,11 +15,7 @@ class WebSocketHandler(logging.Handler):
                 "messageRaw": record.message,
                 "level": record.levelno
             }
-            json_str = {
-                "message": "logUpdate",
-                "data": log_entry
-            }
-            self.websocket_send_func(json.dumps(json_str))
+            self.websocket_send_func("logUpdate", log_entry)
 
         except Exception:
             self.handleError(record)

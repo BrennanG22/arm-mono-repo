@@ -26,51 +26,6 @@ ROT3U_chain = Chain(
         # World / base frame
         OriginLink(),
 
-        # # 1) Base joint: rotates about Z at the robot base
-        # URDFLink(
-        #     name="base",
-        #     origin_translation=[0.0, 0.0, BASE_HEIGHT],
-        #     origin_orientation=[0.0, 0.0, -np.pi/2], # 90 degrees = positive x, 0 degrees = negative y, 180 degrees = positive y
-        #     rotation=[0.0, 0.0, 1.0],          # yaw
-        #     bounds=(0, np.pi),
-        # ),
-
-        # # 2) Shoulder joint: pivot at top of base
-        # URDFLink(
-        #     name="shoulder",
-        #     origin_translation=[0.0, 0.0, 0.0],
-        #     origin_orientation=[0.0, -np.pi/2, 0.0], # 90 degrees = positive z, 180 degrees = positive x, 0 degrees = negative x (assuming base = 90 degrees)
-        #     rotation=[0.0, 1.0, 0.0],          # pitch
-        #     bounds=(0, np.pi),
-        # ),
-
-        # # 3) Elbow joint: UPPER_ARM_LEN above shoulder
-        # URDFLink(
-        #     name="elbow",
-        #     origin_translation=[0.0, 0.0, UPPER_ARM_LEN],
-        #     origin_orientation=[0.0, -np.pi/2, 0.0], # 90 degrees = positive z, 180 degrees = positive x, 0 degrees = negative x
-        #     rotation=[0.0, 1.0, 0.0],
-        #     bounds=(0, np.pi),
-        # ),
-
-        # # 4) Wrist joint: FOREARM_LEN above elbow
-        # URDFLink(
-        #     name="wrist",
-        #     origin_translation=[0.0, 0.0, FOREARM_LEN],
-        #     origin_orientation=[0.0, -np.pi/2, 0.0],
-        #     rotation=[0.0, 1.0, 0.0],
-        #     bounds=(0, np.pi),
-        # ),
-
-        # # 5) Fixed tool link: WRIST_LEN above wrist
-        # URDFLink(
-        #     name="tool",
-        #     origin_translation=[0.0, 0.0, WRIST_LEN],
-        #     origin_orientation=[0.0, 0.0, 0.0],
-        #     rotation=None,
-        #     joint_type="fixed",
-        # ),
-
         # 1) Base joint: rotates about Z at the robot base
         URDFLink(
             name="base",
@@ -126,15 +81,6 @@ ROT3U_chain = Chain(
     ]
 )
 
-# # remove this if it is causing issues - just here to suppress warning message
-# ROT3U_chain.active_links_mask = [
-#     False,
-#     True,
-#     True,
-#     True,
-#     True,
-#     False
-# ]
 
 def compute_errors(chain, joints, target_position,
                    target_orientation=None, orientation_mode=None):

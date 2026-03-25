@@ -49,6 +49,8 @@ def main():
     arm_manager = arm.armManager.ArmManager()
     arm_context = arm_manager.get_context()
 
+    ws_server = webSocketServer.WebSocketServer(relay_enabled=True)
+    ws_server.start()
 
     arm_context.data.parser_args.set(use_ik=args.d)
 

@@ -147,5 +147,5 @@ class _MoveToSort:
         target = np.array(self.sorting_point, dtype=float)
 
         if np.allclose(pos, target, atol=1e-5):
-            self.arm_context.set_gripper(0)
+            # self.pather.controller.set_grip_state(0) # GAVIN - see if this fixes the stutter problem
             self.machine.goto_state("move_to_pickup")

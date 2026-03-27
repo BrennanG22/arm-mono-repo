@@ -3,19 +3,15 @@ pickUpPoint:
   y: 0
   z: 10
 sortingPoints:
-- name: blue
-  points:
-    x: 15
-    y: 15
-    z: 0
-  categories:
-  - blue
-  - square
 - name: test
   points:
     x: 203
     y: -10.8
     z: 0.5
-  categories:
-  - orange
-  - triangle
+  expression: colour:yellow
+- name: bla
+  points:
+    x: 14
+    y: 15
+    z: 0
+  expression: (colour:blue&shape:triangle)|(!colour:yellow&shape:square)

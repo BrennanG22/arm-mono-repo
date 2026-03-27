@@ -27,6 +27,7 @@ class ArmManager:
     networking_context: app.networking.networkContext.NetworkingContext
 
     armController: cartesian_to_joints.ArmController = cartesian_to_joints.ArmController()
+    # armController: cartesian_to_joints.ArmController = None
     sorting_state_machine: armStateMachine.ArmStateMachine = None
     arm_pather: armPather.ArmPather
     sorting_queue: sortingObjectQueue.SortingObjectQueue = sortingObjectQueue.SortingObjectQueue()

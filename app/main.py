@@ -6,14 +6,12 @@ import queue
 import time
 from typing import Callable
 
-import configTools
-import dataStores
+
 import networking.networkingManager
 import arm.armManager
 # from app.arm.armPather import init_arm_pather
-from app.arm.sorting import sortingStates
 from app.networking import webSocketServer, webSocketLogHandler
-from configTools import yaml_manager
+from app.configTools import yaml_manager
 
 GRIPPER_INDEX = 0
 
@@ -48,9 +46,6 @@ def main():
 
     arm_manager = arm.armManager.ArmManager()
     arm_context = arm_manager.get_context()
-
-    ws_server = webSocketServer.WebSocketServer(relay_enabled=True)
-    ws_server.start()
 
     arm_context.data.parser_args.set(use_ik=args.d)
 

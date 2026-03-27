@@ -93,7 +93,7 @@ class YAMLManager:
             sp = dataStores.SortingPoint()
             name = i["name"]
             sp.point = (i["points"]["x"], i["points"]["y"], i["points"]["z"])
-            sp.categories = i["categories"]
+            sp.expression = i["expression"]
             points.append(sp.point)
             if update_data_store:
                 self._arm_context.data.boundary.update(lambda store: store.sorting_points.__setitem__(name, sp))
@@ -124,7 +124,7 @@ class YAMLManager:
                     "y": sp.point[1],
                     "z": sp.point[2],
                 },
-                "categories": sp.categories,
+                "expression": sp.expression,
             })
 
         data["sortingPoints"] = sorting_list

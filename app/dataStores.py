@@ -22,10 +22,10 @@ class SortingType(Enum):
 @dataclass
 class SortingPoint:
     point: [float, float, float] = None
-    categories: List[str] = None
+    expression: str = None
 
     def list_points(self) -> str:
-        return f"Point: X:{self.point[0]} Y:{self.point[1]} Z:{self.point[2]}, Categories: {self.categories}"
+        return f"Point: X:{self.point[0]} Y:{self.point[1]} Z:{self.point[2]}, Expression: {self.expression}"
 
 
 @dataclass

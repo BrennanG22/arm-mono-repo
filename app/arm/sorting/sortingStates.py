@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy as np
 
 from app.arm.sorting import armStateMachine
-from app.arm import armPather, armContext
+from app.arm import armPather, armContext, expresionEngine
 import app.dataStores
 
 
@@ -120,16 +120,10 @@ class _MoveToSort:
 
         classified_object = current_sorting_data.active_classification
 
-        classification = (
-            classified_object.colour
-            if current_sorting_data.sort_type == app.dataStores.SortingType.COLOUR
-            else classified_object.shape
-        )
-
         points = current_boundary_data.sorting_points
 
         for name, sp in points.items():
-            if classification in sp.categories:
+            if expresionEngine.evaluate_expression(sp.expression, classified_object):
                 logging.info(f"Sorting to point: {name}")
                 self.sorting_point = sp.point
 

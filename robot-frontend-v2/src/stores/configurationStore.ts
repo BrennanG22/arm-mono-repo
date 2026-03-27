@@ -1,7 +1,7 @@
 import { createStore } from "solid-js/store";
 
 export interface Configuration {
-  sortingPoints: Record<string, { point: [number, number, number], categories: string[] }>;
+  sortingPoints: Record<string, { point: [number, number, number], expression: string }>;
   pickupPoint?: [number, number, number];
 }
 

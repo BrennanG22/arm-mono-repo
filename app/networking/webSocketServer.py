@@ -6,11 +6,9 @@ from typing import Dict
 import websockets
 import json
 
-import app.configTools
-from app import helpers, configTools
+from app import helpers
 from app.configTools import yaml_manager
 from app.arm.armContext import ArmContext
-import app.helpers
 from app.dataStores import ActiveMode, SortingPoint, SortingType
 
 logger = logging.getLogger()
@@ -125,7 +123,7 @@ class WebSocketServer:
             "data": {
                 key: {
                     "point": [float(p.point[0]), float(p.point[1]), float(p.point[2])],
-                    "categories": p.categories
+                    "expression": p.expression
                 }
                 for key, p in sorting_points.items()
             }
@@ -195,7 +193,7 @@ class WebSocketServer:
             data: dict = data
             new_points: Dict[str, SortingPoint] = {}
             for key, p in data.items():
-                sp: SortingPoint = SortingPoint(point=p["point"], categories=p["categories"])
+                sp: SortingPoint = SortingPoint(point=p["point"], expression=p["expression"])
                 new_points[key] = sp
             self.arm_context.data.boundary.update(lambda d: setattr(d, "sorting_points", new_points))
             logger.info(f"Revived new sorting points: {new_points}")
@@ -205,7 +203,7 @@ class WebSocketServer:
                 "data": {
                     key: {
                         "point": [float(p.point[0]), float(p.point[1]), float(p.point[2])],
-                        "categories": p.categories
+                        "expression": p.expression
                     }
                     for key, p in sorting_points.items()
                 }

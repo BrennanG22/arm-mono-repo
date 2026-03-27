@@ -12,10 +12,10 @@ function ConfigureApplet() {
   const [pointType, setPointType] = createSignal("sorting");
   const [activeTab, setActiveTab] = createSignal("points");
 
-  const [sortingPoints, setSortingPoints] = createSignal({} as Record<string, { point: [number, number, number], categories: string[] }>);
+  const [sortingPoints, setSortingPoints] = createSignal({} as Record<string, { point: [number, number, number], expression: string }>);
   const [selectedSortingPoint, setSelectedSortingPoint] = createSignal("");
   const [tempSortingPointName, setTempSortingPointName] = createSignal("");
-  const [tempSortingPoint, setTempSortingPoint] = createSignal({ point: [0, 0, 0] as [number, number, number], categories: [] as string[] });
+  const [tempSortingPoint, setTempSortingPoint] = createSignal({ point: [0, 0, 0] as [number, number, number], expression: "" });
 
   createEffect(() => {
     if (pointType() === "sorting") {
@@ -25,7 +25,7 @@ function ConfigureApplet() {
 
   function resetView() {
     setSortingPoints(configuration.sortingPoints);
-    setTempSortingPoint(sortingPoints()[selectedSortingPoint()] || { point: [0, 0, 0], categories: [] });
+    setTempSortingPoint(sortingPoints()[selectedSortingPoint()] || { point: [0, 0, 0], expression: "" });
     setTempSortingPointName(selectedSortingPoint());
   }
 
@@ -51,6 +51,8 @@ function ConfigureApplet() {
     const newName = tempSortingPointName();
     const point = tempSortingPoint();
 
+    console.log(point)
+
     setConfiguration("sortingPoints",
       produce(points => {
         delete points[oldName];
@@ -62,7 +64,7 @@ function ConfigureApplet() {
   }
 
   function addNewSortingPoint() {
-    setTempSortingPoint({ point: [0, 0, 0], categories: [] });
+    setTempSortingPoint({ point: [0, 0, 0], expression: "" });
     setTempSortingPointName("Untitled Point");
     setSelectedSortingPoint("Untitled Point");
   }
@@ -197,23 +199,14 @@ function ConfigureApplet() {
 
                     {/* XYZ Inputs */}
                     <div class="flex flex-col sm:flex-row gap-2 pt-4">
-                      <Input type="number" containerClass="w-full" value={tempSortingPoint().point[0]} />
-                      <Input type="number" containerClass="w-full" value={tempSortingPoint().point[1]} />
-                      <Input type="number" containerClass="w-full" value={tempSortingPoint().point[2]} />
+                      <Input type="number" placeholder="X" containerClass="flex-1" value={tempSortingPoint().point[0]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [Number(e.target.value), tempSortingPoint().point[1], tempSortingPoint().point[2]] })} label="X Point" />
+                      <Input type="number" placeholder="Y" containerClass="flex-1" value={tempSortingPoint().point[1]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [tempSortingPoint().point[0], Number(e.target.value), tempSortingPoint().point[2]] })} label="Y Point" />
+                      <Input type="number" placeholder="Z" containerClass="flex-1" value={tempSortingPoint().point[2]} onChange={(e) => setTempSortingPoint({ ...tempSortingPoint(), point: [tempSortingPoint().point[0], tempSortingPoint().point[1], Number(e.target.value)] })} label="Z Point" />
                     </div>
 
-                    <h1 class="text-lg sm:text-xl text-white font-semibold mt-4">Categories</h1>
-                    <textarea
-                      class="w-full min-h-[120px] p-2 rounded-lg bg-slate-800 text-white resize-none"
-                      value={tempSortingPoint().categories.join('\n')}
-                      onBeforeInput={validateCategory}
-                      onChange={(e) =>
-                        setTempSortingPoint({
-                          ...tempSortingPoint(),
-                          categories: e.target.value.split('\n').filter(c => c.trim() !== '')
-                        })
-                      }
-                    />
+                    <h1 class="text-lg sm:text-xl text-white font-semibold mt-4">Expression</h1>
+                    <Input type="text" value={tempSortingPoint().expression}
+                      onInput={e => setTempSortingPoint(p => ({ ...p, expression: e.target.value }))} />
 
                     {/* Actions */}
                     <div class="mt-auto flex flex-col sm:flex-row gap-2 sm:self-end">

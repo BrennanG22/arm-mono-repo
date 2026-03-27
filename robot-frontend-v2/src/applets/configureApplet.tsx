@@ -221,9 +221,9 @@ function ConfigureApplet() {
                 <div class="flex flex-col flex-1">
 
                   <div class="flex flex-col sm:flex-row gap-2 pt-4">
-                    <Input type="number" containerClass="w-full" value={tempPoint()[0]} />
-                    <Input type="number" containerClass="w-full" value={tempPoint()[1]} />
-                    <Input type="number" containerClass="w-full" value={tempPoint()[2]} />
+                    <Input type="number" placeholder="X" containerClass="flex-1" value={tempPoint()[0]} onChange={(e) => setTempPoint([Number(e.target.value), tempPoint()[1], tempPoint()[2]])} label="X Point" />
+                    <Input type="number" placeholder="Y" containerClass="flex-1" value={tempPoint()[1]} onChange={(e) => setTempPoint([tempPoint()[0], Number(e.target.value), tempPoint()[2]])} label="Y Point" />
+                    <Input type="number" placeholder="Z" containerClass="flex-1" value={tempPoint()[2]} onChange={(e) => setTempPoint([tempPoint()[0], tempPoint()[1], Number(e.target.value)])} label="Z Point" />
                   </div>
 
                   <div class="mt-auto flex flex-col sm:flex-row gap-2 sm:self-end">

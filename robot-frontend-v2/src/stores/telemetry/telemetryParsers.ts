@@ -23,7 +23,7 @@ export const telemetryParsers: Record<string, TelemetryParser> = {
   },
 
   sortingPoints(data) {
-    const pointsData = data as Record<string, { point: [number, number, number], categories: string[] }>;
+    const pointsData = data as Record<string, { point: [number, number, number], expression: string }>;
 
     const transformedData: Record<string, [number, number, number]> = {};
     for (const [key, value] of Object.entries(pointsData)) {

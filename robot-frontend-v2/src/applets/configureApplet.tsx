@@ -34,17 +34,6 @@ function ConfigureApplet() {
     if (!pattern.test(e.data ?? "")) e.preventDefault();
   }
 
-  function validateCategory(e: InputEvent & { currentTarget: HTMLTextAreaElement }) {
-    const el = e.currentTarget;
-    const start = el.selectionStart ?? 0;
-    const end = el.selectionEnd ?? 0;
-    const insert = e.data ?? "";
-
-    const next = el.value.slice(0, start) + insert + el.value.slice(end);
-    const pattern = /^[A-Za-z]+(\n[A-Za-z]+)*\n?$/;
-
-    if (!pattern.test(next)) e.preventDefault();
-  }
 
   function saveSortingPoint() {
     const oldName = selectedSortingPoint();

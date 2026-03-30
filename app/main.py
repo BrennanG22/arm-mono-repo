@@ -1,15 +1,12 @@
 import argparse
-import json
 import logging
 import os
 import queue
 import time
 from typing import Callable
 
-
-import networking.networkingManager
-import arm.armManager
-# from app.arm.armPather import init_arm_pather
+from app.networking import networkingManager
+from app.arm import armManager
 from app.networking import webSocketServer, webSocketLogHandler
 from app.configTools import yaml_manager
 
@@ -22,6 +19,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(BASE_DIR, "../logs/app.log")
 
 DEFAULT_CONFIG_PATH = "/etc/armController/waypoint_config.yaml"
+
+LOOP_PERIOD = 0.01
 
 
 def main():
@@ -41,10 +40,10 @@ def main():
     args = parser.parse_args()
     config_path = args.config
 
-    networking_manager = networking.networkingManager.NetworkingManager()
+    networking_manager = networkingManager.NetworkingManager()
     network_context = networking_manager.get_context()
 
-    arm_manager = arm.armManager.ArmManager()
+    arm_manager = armManager.ArmManager()
     arm_context = arm_manager.get_context()
 
     arm_context.data.parser_args.set(use_ik=args.d)
@@ -61,47 +60,17 @@ def main():
     networking_manager.start(arm_context)
     arm_manager.start(network_context)
 
-    # init_arm_pather()
-
-    # if arm_telemetry.get().active_mode == ActiveMode.SORTING:
-    #     sorting_state_machine.goto_state("move_to_pickup")
-    #
-    # # TEMP FIX: Part of temp fix below
-    # mode = arm_telemetry.get().active_mode
-
     while True:
-        time.sleep(0.001)
+        start = time.perf_counter()
+
         arm_manager.main_loop()
         networking_manager.main_loop()
 
-        # # TEMP FIX: Remedy issue of transition from manual to sorting
-        # if mode == ActiveMode.SORTING and arm_telemetry.get().active_mode == ActiveMode.MANUAL:
-        #     sorting_state_machine.current_state = None
-        # mode = arm_telemetry.get().active_mode
-        #
-        # try:
-        #
-        #
-        #     sorting_data = dataStores.arm_sorting_data.get()
-        #     state = "Manual"
-        #     if sorting_data.active_state is not None and mode == ActiveMode.SORTING:
-        #         state = sorting_data.active_state
-        #
-        #     if prev_state != state:
-        #         state_str = "{\"message\": \"state\", \"data\": \"" + state + "\"}"
-        #         ws_server.send_to_all(state_str)
-        #         prev_state = state
-        #
-        # except queue.Empty:
-        #     pass
-        #
-        # try:
-        #
-        #     # cls = msg["colour"]
-        #     # dataStores.arm_sorting_data.update(lambda d: setattr(d, "active_classification", cls))
-        #     # sorting_queue.update_from_message(msg)
-        # except queue.Empty:
-        #     pass
+        elapsed = time.perf_counter() - start
+        sleep_time = LOOP_PERIOD - elapsed
+
+        if sleep_time > 0:
+            time.sleep(sleep_time)
 
 
 def init_logger(send_to_all: Callable):

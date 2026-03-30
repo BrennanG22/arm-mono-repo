@@ -8,7 +8,7 @@ from app.arm import armContext
 
 import yaml
 
-import dataStores
+from app import dataStores
 
 
 @dataclasses.dataclass

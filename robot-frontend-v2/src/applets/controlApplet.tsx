@@ -1,4 +1,4 @@
-import { createEffect, createSignal, Match, on, Switch } from "solid-js";
+import { createEffect, createSignal, on, } from "solid-js";
 import ThreeTest from "../components/threeTest";
 import { sendTelemetryMessage } from "../stores/telemetry/telemetrySocket";
 import { telemetry } from "../stores/telemetryStore";
@@ -34,10 +34,8 @@ function MoveButton(props: {
 function ControlApplet() {
   const [controlMode, setControlMode] = createSignal("");
   const [stepSize, setStepSize] = createSignal(0.1);
-  const [sortingMode, setSortingMode] = createSignal("colour");
 
   let controlInitialized = false;
-  let sortingInitialized = false;
 
   createEffect(
     on(
@@ -51,28 +49,15 @@ function ControlApplet() {
     )
   );
 
-  createEffect(
-    on(
-      () => telemetry.sortingMode,
-      (mode) => {
-        if (!sortingInitialized && mode !== undefined) {
-          setSortingMode(mode);
-          sortingInitialized = true;
-        }
-      }
-    )
-  );
 
 
   return (
-    <div class="grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 gap-4  w-full p-2 md:p-4 bg-gray-100 rounded-2xl overflow-auto">
+    <div class="grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 gap-4 w-full min-h-full p-2 md:p-4 bg-gray-100 rounded-2xl overflow-auto">
 
-      {/* 3D View */}
       <div class="bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 rounded-2xl shadow-2xl p-2 md:p-3 border border-slate-800/50 min-h-[250px]">
         <ThreeTest />
       </div>
 
-      {/* Camera */}
       <div class="flex items-center justify-center rounded-2xl 
       bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 
       shadow-2xl border border-slate-800/50 
@@ -83,22 +68,24 @@ function ControlApplet() {
         </span>
       </div>
 
-      <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 overflow-hidden">
+      <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 overflow-visible">
 
-        <div class="flex items-center justify-center">
-          <div class="grid grid-cols-5 grid-rows-3 gap-2 h-full w-full max-w-65 md:max-w-105 aspect-square p-2 md:p-4">
+        <div class="flex items-center justify-center gap-6">
+          {/* XY Movement Pad */}
+          <div class="grid gap-1.5" style={{ "grid-template-columns": "repeat(3, 1fr)", "grid-template-rows": "repeat(3, 1fr)" }}>
+            <MoveButton direction="y+" label="Y+" stepSize={stepSize()} position={{ col: 2, row: 1 }} />
+            <MoveButton direction="x-" label="X-" stepSize={stepSize()} position={{ col: 1, row: 2 }} />
+            <MoveButton direction="x+" label="X+" stepSize={stepSize()} position={{ col: 3, row: 2 }} />
+            <MoveButton direction="y-" label="Y-" stepSize={stepSize()} position={{ col: 2, row: 3 }} />
+          </div>
 
-            <MoveButton direction="x+" label="x+" stepSize={stepSize()} position={{ col: 2, row: 1 }} />
-            <MoveButton direction="y-" label="y-" stepSize={stepSize()} position={{ col: 1, row: 2 }} />
-            <MoveButton direction="y+" label="y+" stepSize={stepSize()} position={{ col: 3, row: 2 }} />
-            <MoveButton direction="x-" label="x-" stepSize={stepSize()} position={{ col: 2, row: 3 }} />
-            <MoveButton direction="z+" label="z+" stepSize={stepSize()} position={{ col: 5, row: 1 }} />
-            <MoveButton direction="z-" label="z-" stepSize={stepSize()} position={{ col: 5, row: 2 }} />
-
+          {/* Z Axis */}
+          <div class="flex flex-col gap-1.5">
+            <MoveButton direction="z+" label="Z+" stepSize={stepSize()} position={{ col: 1, row: 1 }} />
+            <MoveButton direction="z-" label="Z-" stepSize={stepSize()} position={{ col: 1, row: 2 }} />
           </div>
         </div>
 
-        {/* Settings */}
         <LargeContainer class="p-3 md:p-4">
           <div class="space-y-4">
 
@@ -121,49 +108,31 @@ function ControlApplet() {
               />
             </div>
 
-            <Switch>
-              <Match when={controlMode() === "manual"}>
-                <div class="space-y-2">
-                  <label class="block text-sm font-medium text-slate-300">
-                    Step Size
-                  </label>
-
-                  <input
-                    class="w-full p-2 md:p-3 rounded-xl bg-slate-800/50 border border-slate-700 text-slate-100 
-                  placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                    type="number"
-                    step="1"
-                    min="0"
-                    value={stepSize()}
-                    onInput={(e) => {
-                      const val = parseFloat(e.currentTarget.value);
-                      setStepSize(val);
-                    }}
-                  />
-
-                  <ButtonRed
-                    class="w-full"
-                    onclick={() => sendTelemetryMessage("routeToRest")}
-                  >
-                    Route to rest
-                  </ButtonRed>
-                </div>
-              </Match>
-
-              <Match when={controlMode() === "sorting"}>
-                <Select
-                  value={sortingMode}
-                  options={[
-                    { value: "colour", label: "Colour Sorting" },
-                    { value: "shape", label: "Shape Sorting" }
-                  ]}
-                  onChange={(mode) => {
-                    setSortingMode(mode);
-                    sendTelemetryMessage("setSortingMode", { mode });
+            <div style={{ visibility: controlMode() === "manual" ? "visible" : "hidden" }}>
+              <div class="space-y-2">
+                <label class="block text-sm font-medium text-slate-300">
+                  Step Size
+                </label>
+                <input
+                  class="w-full p-2 md:p-3 rounded-xl bg-slate-800/50 border border-slate-700 text-slate-100 
+          placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={stepSize()}
+                  onInput={(e) => {
+                    const val = parseFloat(e.currentTarget.value);
+                    setStepSize(val);
                   }}
                 />
-              </Match>
-            </Switch>
+                <ButtonRed
+                  class="w-full"
+                  onclick={() => sendTelemetryMessage("routeToRest")}
+                >
+                  Route to rest
+                </ButtonRed>
+              </div>
+            </div>
 
           </div>
         </LargeContainer>

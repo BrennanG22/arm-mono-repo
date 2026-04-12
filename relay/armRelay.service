@@ -1,0 +1,14 @@
+[Unit]
+Description=Relay service for Arm Controller
+After=network.target
+
+[Service]
+Type=simple
+User=brennan
+WorkingDirectory=/home/brennan/programs/capstone_relay
+ExecStart=/home/brennan/programs/capstone_relay/relay
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

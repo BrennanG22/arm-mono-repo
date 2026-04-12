@@ -30,6 +30,7 @@ export default function TelemetryCurrentChart() {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         animation: false,
         plugins: {
           legend: {
@@ -92,7 +93,7 @@ export default function TelemetryCurrentChart() {
   });
 
   return (
-    <canvas ref={canvas} />
+    <canvas class="h-full w-full" ref={canvas} />
   );
 
 }

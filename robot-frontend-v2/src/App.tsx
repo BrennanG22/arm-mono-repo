@@ -93,7 +93,6 @@ const App = (props: any) => {
           <A href="/control" class={navButton("/control")}>Control</A>
           <A href="/configure" class={navButton("/configure")}>Configure</A>
           <A href="/logging" class={navButton("/logging")}>Logging</A>
-          <A href="/update" class={navButton("/update")}>Update</A>
         </nav>
 
         {/* Overlay (mobile only) */}

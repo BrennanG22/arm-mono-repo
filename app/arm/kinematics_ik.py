@@ -1,12 +1,10 @@
-# ikpy_testing.py
-
 from ikpy.chain import Chain
 from ikpy.link import OriginLink, URDFLink
 import numpy as np
 
 
 """
-Geometric model of a simple 4-DOF ROT3U arm using ikpy.
+Geometric model of a simple 4-DOF ROT3U arm using ikpy and URDF.
 
 All distances are in meters.
 """
@@ -208,7 +206,6 @@ def ik_with_orientation_fallback(
     }
 
 
-# Optional: local test if you run this file directly
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
@@ -243,20 +240,15 @@ if __name__ == "__main__":
     # Plot the arm solution
     ROT3U_chain.plot(sol, ax)
 
-    # --- Consistent workspace bounds ---
     ax.set_xlim(-0.25, 0.25)     # X range (meters)
     ax.set_ylim(-0.25, 0.25)     # Y range (meters)
     ax.set_zlim(0.0, 0.5)        # Z range (meters)
 
-    # Optional: make axes equal scale
     ax.set_box_aspect([0.5, 0.5, 0.5])   # (x_range, y_range, z_range)
 
-    # Labels (optional)
     ax.set_xlabel("X (m)")
     ax.set_ylabel("Y (m)")
     ax.set_zlabel("Z (m)")
 
     plt.show()
 
-
-# -0.13, -0.125, 0

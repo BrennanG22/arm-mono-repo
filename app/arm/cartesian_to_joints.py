@@ -1,7 +1,5 @@
 '''
-formerly called ik_to_pwm_bridge
-This file is really more of an Inverse Kinematics to Joint Angles bridge rn. it has a lot of the fault handling
-and class creation, but doesn't have any functionality to actually send out PWM signals. 
+sets up ArmController class
 '''
 
 
@@ -99,8 +97,9 @@ class ArmController:
         return None
 
     def load_position(self, filename="angles.json"):
-        """Reads servo angles from a JSON file and updates the robot's state.
-        need to adjust to make first state shutdown state if json DNE"""
+        """
+        Reads servo angles from a JSON file and updates the robot's state.
+        """
         try:
             # Open the file in read mode ('r')
             with open(filename, 'r') as json_file:
@@ -148,9 +147,9 @@ class ArmController:
         # --- TWEAKABLE CONSTANTS ---
         ANGLE_OPEN = 0
         ANGLE_CLOSED = 180
-        STEP_SIZE = 2             # Degrees to move per iteration
-        STEP_DELAY = 0.02         # Seconds to wait between steps to allow physical movement & sensor update
-        CURRENT_THRESHOLD = 900/1000   # Sensor value that defines a "spike" (update to your sensor's metric)
+        STEP_SIZE = 2             
+        STEP_DELAY = 0.02         
+        CURRENT_THRESHOLD = 900/1000   # amps
         BACKOFF_ANGLE = 10         # Degrees to back off if a spike is detected
         GRIPPER = self.servo_assignment['GRIPPER']
 
@@ -173,28 +172,23 @@ class ArmController:
         while (direction == 1 and current_angle < target_angle) or \
               (direction == -1 and current_angle > target_angle):
             
-            # Calculate next angle and clamp it to our min/max limits to prevent errors
+            # Calculate next angle and clamp to limits
             current_angle += (direction * STEP_SIZE)
             current_angle = max(ANGLE_OPEN, min(ANGLE_CLOSED, current_angle))
-            
-            # Command the servo
+ 
             kit.servo[GRIPPER].angle = current_angle
             
-            # Wait for servo to move and for the async current_sense() to catch up
             time.sleep(STEP_DELAY)
             
             # Check for current spike
-            # (Ensures self.current_value exists before checking it)
             if hasattr(self, 'current_value') and self.current_value is not None:
                 if self.current_value > CURRENT_THRESHOLD and direction == 1:
                     print(f"Current spike detected ({self.current_value}). Halting gripper.")
                     
                     # OPTION A: Hold current position
-                    # We achieve this by simply breaking out of the loop and leaving the angle as-is.
                     #break
                     
                     # OPTION B: Back off slightly 
-                    # (Commented out as requested)
                     current_angle -= (direction * BACKOFF_ANGLE)
                     current_angle = max(ANGLE_OPEN, min(ANGLE_CLOSED, current_angle))
                     kit.servo[GRIPPER].angle = current_angle
@@ -238,73 +232,72 @@ class ArmController:
         '''
         return self.current_servo_angles_deg
     
-    def get_current_position_coords(self):
-        '''
-        not functional yet
-        '''
-        angles = self.current_servo_angles_deg
-        base = angles[0]
-        shoulder = angles[1]
-        elbow = angles[2]
-        wrist = angles[3]
-        rads = [
-            0,
-            math.radians(base),
-            math.radians(shoulder),
-            math.radians(elbow),
-            math.radians(wrist),
-            0
-        ]
-        fk_matrix = self.chain.forward_kinematics(rads)
-        print(fk_matrix)
+    # def get_current_position_coords(self):
+    #     '''
+    #     didn't end up needed
+    #     '''
+    #     angles = self.current_servo_angles_deg
+    #     base = angles[0]
+    #     shoulder = angles[1]
+    #     elbow = angles[2]
+    #     wrist = angles[3]
+    #     rads = [
+    #         0,
+    #         math.radians(base),
+    #         math.radians(shoulder),
+    #         math.radians(elbow),
+    #         math.radians(wrist),
+    #         0
+    #     ]
+    #     fk_matrix = self.chain.forward_kinematics(rads)
+    #     print(fk_matrix)
         
-        x_m = fk_matrix[0, 3]
-        y_m = fk_matrix[1, 3]
-        z_m = fk_matrix[2, 3]
+    #     x_m = fk_matrix[0, 3]
+    #     y_m = fk_matrix[1, 3]
+    #     z_m = fk_matrix[2, 3]
 
-        target_pos_m = [x_m, y_m, z_m]
-        target_dir = self._phi0_orientation_for_position(target_pos_m)
-        orientation_mode = "X"   # constrain X-axis of EE
+    #     target_pos_m = [x_m, y_m, z_m]
+    #     target_dir = self._phi0_orientation_for_position(target_pos_m)
+    #     orientation_mode = "X"   # constrain X-axis of EE
 
-        solution, info = ik_with_orientation_fallback(
-            self.chain,
-            target_position=target_pos_m,
-            target_orientation=target_dir,
-            orientation_mode=orientation_mode,
-            # initial_position=self.current_joints,
-        )
+    #     solution, info = ik_with_orientation_fallback(
+    #         self.chain,
+    #         target_position=target_pos_m,
+    #         target_orientation=target_dir,
+    #         orientation_mode=orientation_mode,
+    #         # initial_position=self.current_joints,
+    #     )
 
-        base_deg     = math.degrees(solution[1])
-        shoulder_deg = math.degrees(solution[2])
-        elbow_deg    = math.degrees(solution[3])
-        wrist_deg    = math.degrees(solution[4])
+    #     base_deg     = math.degrees(solution[1])
+    #     shoulder_deg = math.degrees(solution[2])
+    #     elbow_deg    = math.degrees(solution[3])
+    #     wrist_deg    = math.degrees(solution[4])
 
-        # We have 4 DOFs modeled; add 2 placeholders (wrist_roll, gripper)
-        servo_angles = [
-            base_deg,
-            shoulder_deg,
-            elbow_deg,
-            wrist_deg,
-            0.0,  # wrist_roll placeholder
-            0.0,  # gripper placeholder
-        ]
+    #     # We have 4 DOFs modeled; add 2 placeholders (wrist_roll, gripper)
+    #     servo_angles = [
+    #         base_deg,
+    #         shoulder_deg,
+    #         elbow_deg,
+    #         wrist_deg,
+    #         0.0,  # wrist_roll placeholder
+    #         0.0,  # gripper placeholder
+    #     ]
 
-        print(servo_angles)
+    #     print(servo_angles)
 
-        x_cm = round(x_m * 100.0, 2)
-        y_cm = round(y_m * 100.0, 2)
-        z_cm = round(z_m * 100.0, 2)
+    #     x_cm = round(x_m * 100.0, 2)
+    #     y_cm = round(y_m * 100.0, 2)
+    #     z_cm = round(z_m * 100.0, 2)
 
-        return [x_cm, y_cm, z_cm]
+    #     return [x_cm, y_cm, z_cm]
 
     def send_angles_to_servos(self, joint_angles_deg):
         """
-        Placeholder: replace with your real PWM / servo code.
         joint_angles_deg: list of 6 servo angles in degrees
                           [base, shoulder, elbow, wrist, wrist_roll, gripper]
         """
 
-        step_constant = 50 # multiplies movement time to determine how many steps take place
+        step_constant = 50 
         speed_constant = 60 # deg/s of the servo with the greatest change
 
         # print("\nSending joint angles to servo controller:")
@@ -323,7 +316,7 @@ class ArmController:
         joint_angles_deg[1] = -1*joint_angles_deg[1]
         #hard code wrist rotation
         joint_angles_deg[4] = 90
-        # 🔹 APPLY OFFSETS HERE
+        # apply offsets
         commanded_angles = [
             joint_angles_deg[i] + self.servo_offsets_deg[i]
             for i in range(6)
@@ -422,9 +415,8 @@ class ArmController:
             orientation_mode = "X"   # constrain X-axis of EE
             #print("its still zero dude")
         else:
-            # your existing general phi handling, if you keep it
             target_dir = self._phi_to_target_orientation(phi_deg)
-            orientation_mode = "X"   # or whatever you used before
+            orientation_mode = "X"   
 
         solution, info = ik_with_orientation_fallback(
             self.chain,
@@ -451,10 +443,6 @@ class ArmController:
                 f"(pos_err={pos_err:.4f} m, ori_err={ori_err:.4f} rad)"
             )
 
-        # 4) Store joint solution (radians)
-        #self.current_joints = solution
-
-        # solution has one entry per link (OriginLink + base + shoulder + elbow + wrist + tool)
         # Active joints are at indices: 1=base, 2=shoulder, 3=elbow, 4=wrist
         base_deg     = math.degrees(solution[1])
         shoulder_deg = math.degrees(solution[2])
@@ -471,7 +459,7 @@ class ArmController:
             0.0,  # gripper placeholder
         ]
 
-        # 5) Send to servos
+        # Send to servos
         self.send_angles_to_servos(servo_angles)
 
  
@@ -539,124 +527,3 @@ class ArmController:
 if __name__ == "__main__":
     import time
     from adafruit_servokit import ServoKit
-
-    print("Initializing Servo Calibration Tool...")
-    kit = ServoKit(channels=16)
-
-    # Dictionary mapping channel numbers to names
-    servo_names = {
-        0: 'BASE',
-        1: 'SHOULDER',
-        2: 'ELBOW',
-        3: 'WRIST',
-        4: 'WRIST_ROTATE',
-        5: 'GRIPPER'
-    }
-
-    # Starting pulse widths based on your existing configuration
-    pulse_widths = {
-        0: [580, 2450],
-        1: [540, 2460],
-        2: [530, 2450],
-        3: [630, 2480],
-        4: [680, 2440],
-        5: [900, 1500]
-    }
-
-    # Ensure all servos are set to 180 degree actuation range initially
-    for ch in servo_names.keys():
-        kit.servo[ch].actuation_range = 180
-        kit.servo[ch].set_pulse_width_range(pulse_widths[ch][0], pulse_widths[ch][1])
-
-    def move_gradually(servo_obj, target_angle):
-        """Moves the servo to the target angle in small steps to prevent violent jerks."""
-        current = servo_obj.angle
-        if current is None:
-            current = 90 # Assume middle if unknown
-            servo_obj.angle = current
-            time.sleep(0.5)
-
-        step = 2 if target_angle > current else -2
-        for angle in range(int(current), int(target_angle), step):
-            servo_obj.angle = angle
-            time.sleep(0.01)
-        servo_obj.angle = target_angle
-        time.sleep(0.2)
-
-    while True:
-        print("\n" + "="*40)
-        print(" SERVO CALIBRATION MENU")
-        print("="*40)
-        for ch, name in servo_names.items():
-            print(f" [{ch}] - {name}")
-        print(" [Q] - Quit and generate code")
-
-        choice = input("\nSelect a servo channel to tune: ").strip().upper()
-
-        if choice == 'Q':
-            break
-
-        try:
-            ch = int(choice)
-            if ch not in servo_names:
-                raise ValueError
-        except ValueError:
-            print("Invalid selection. Please enter a valid number or 'Q'.")
-            continue
-
-        name = servo_names[ch]
-
-        while True:
-            min_pw, max_pw = pulse_widths[ch]
-            kit.servo[ch].set_pulse_width_range(min_pw, max_pw)
-
-            print(f"\n--- Tuning {name} (Channel {ch}) ---")
-            print(f"Current limits: Min = {min_pw}, Max = {max_pw}")
-            print(" [1] Test/Tune MINIMUM limit (0 degrees)")
-            print(" [2] Test/Tune MAXIMUM limit (180 degrees)")
-            print(" [3] Test CENTER (90 degrees)")
-            print(" [B] Back to main menu")
-
-            sub_choice = input("Select action: ").strip().upper()
-
-            if sub_choice == 'B':
-                # Return to a safe middle position before switching servos
-                move_gradually(kit.servo[ch], 90)
-                break
-
-            elif sub_choice == '1':
-                print(f"Moving {name} to 0 degrees...")
-                move_gradually(kit.servo[ch], 0)
-                print("If the servo is buzzing, stalling, or hasn't reached the physical limit, adjust the MIN pulse width.")
-                new_val = input(f"Enter new MIN pulse width (or press Enter to keep {min_pw}): ").strip()
-                if new_val.isdigit():
-                    pulse_widths[ch][0] = int(new_val)
-                    print(f"Updated MIN to {new_val}. The servo will twitch to reflect the new limit.")
-
-            elif sub_choice == '2':
-                print(f"Moving {name} to 180 degrees...")
-                move_gradually(kit.servo[ch], 180)
-                print("If the servo is buzzing, stalling, or hasn't reached the physical limit, adjust the MAX pulse width.")
-                new_val = input(f"Enter new MAX pulse width (or press Enter to keep {max_pw}): ").strip()
-                if new_val.isdigit():
-                    pulse_widths[ch][1] = int(new_val)
-                    print(f"Updated MAX to {new_val}. The servo will twitch to reflect the new limit.")
-
-            elif sub_choice == '3':
-                print(f"Moving {name} to 90 degrees...")
-                move_gradually(kit.servo[ch], 90)
-
-    # Generate the final code output
-    print("\n\n" + "="*50)
-    print(" CALIBRATION COMPLETE")
-    print("="*50)
-    print("Copy and paste these lines into your `send_angles_to_servos` and `gripper` functions:\n")
-
-    for ch, (min_pw, max_pw) in pulse_widths.items():
-        name = servo_names[ch]
-        if name == 'GRIPPER':
-            print(f"kit.servo[GRIPPER].set_pulse_width_range({min_pw}, {max_pw})")
-        else:
-            print(f"kit.servo[{name}].set_pulse_width_range({min_pw}, {max_pw})")
-
-    print("\nExiting calibration tool.")
